@@ -20,41 +20,51 @@ var (
 		[]string{"account", "pool_name"},
 	)
 
-	batchJobsActive = prometheus.NewGaugeVec(
+	batchJobsTasksActive = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_active",
+			Name:      "jobs_tasks_active",
 			Help:      "Number of active batch jobs",
 		},
 		[]string{"account", "job_id", "job_name"},
 	)
 
-	batchJobsRunning = prometheus.NewGaugeVec(
+	batchJobsTasksRunning = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_running",
+			Name:      "jobs_tasks_running",
 			Help:      "Number of running batch jobs",
 		},
 		[]string{"account", "job_id", "job_name"},
 	)
 
-	batchJobsCompleted = prometheus.NewCounterVec(
+	batchJobsTasksCompleted = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_completed_total",
+			Name:      "jobs_tasks_completed_total",
 			Help:      "Total number of completed batch jobs",
 		},
 		[]string{"account", "job_id", "job_name"},
 	)
 
-	batchJobsFailed = prometheus.NewCounterVec(
+	batchJobsTasksSucceeded = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_failed_total",
+			Name:      "jobs_tasks_succeeded_total",
+			Help:      "Total number of succeeded batch jobs",
+		},
+		[]string{"account", "job_id", "job_name"},
+	)
+
+	batchJobsTasksFailed = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "jobs_tasks_failed_total",
 			Help:      "Total number of failed batch jobs",
 		},
 		[]string{"account", "job_id", "job_name"},
@@ -63,10 +73,11 @@ var (
 
 func init() {
 	prometheus.MustRegister(batchPoolsDedicatedNodes)
-	prometheus.MustRegister(batchJobsActive)
-	prometheus.MustRegister(batchJobsRunning)
-	prometheus.MustRegister(batchJobsCompleted)
-	prometheus.MustRegister(batchJobsFailed)
+	prometheus.MustRegister(batchJobsTasksActive)
+	prometheus.MustRegister(batchJobsTasksRunning)
+	prometheus.MustRegister(batchJobsTasksCompleted)
+	prometheus.MustRegister(batchJobsTasksSucceeded)
+	prometheus.MustRegister(batchJobsTasksFailed)
 
 	RegisterUpdateMetricsFunctions("UpdateBatchMetrics", UpdateBatchMetrics)
 }
@@ -116,10 +127,11 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 					continue
 				}
 
-				batchJobsActive.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
-				batchJobsRunning.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
-				batchJobsCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
-				batchJobsFailed.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
+				batchJobsTasksActive.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
+				batchJobsTasksRunning.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
+				batchJobsTasksCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
+				batchJobsTasksCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
+				batchJobsTasksFailed.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
 
 				contextLogger.WithFields(log.Fields{
 					"_id":       id,
@@ -128,6 +140,7 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 					"active":    *taskCounts.Active,
 					"running":   *taskCounts.Running,
 					"completed": *taskCounts.Completed,
+					"succeeded": *taskCounts.Succeeded,
 					"failed":    *taskCounts.Failed,
 				}).Debug("Batch job")
 			}

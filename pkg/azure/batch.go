@@ -17,7 +17,7 @@ var (
 			Name:      "calls_total",
 			Help:      "Total number of calls to the Azure API",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"account"},
 	)
 
 	AzureAPIBatchCallsFailedTotal = prometheus.NewCounterVec(
@@ -27,16 +27,9 @@ var (
 			Name:      "calls_failed_total",
 			Help:      "Total number of failed calls to the Azure API",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"account"},
 	)
 )
-
-type AzureBatchJobMetrics struct {
-	batch.TaskCounts
-	Account        string
-	JobID          string
-	JobDisplayName string
-}
 
 func init() {
 	prometheus.MustRegister(AzureAPIBatchCallsTotal)
@@ -76,11 +69,11 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 
 	accountPools, err := client.ListByBatchAccount(ctx, accountResourceDetails.ResourceGroup, *account.Name, nil, "", "")
 	AzureAPICallsTotal.WithLabelValues().Inc()
-	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name, "", "").Inc()
+	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name).Inc()
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()
-		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name, "", "").Inc()
+		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name).Inc()
 		return nil, err
 	}
 
@@ -97,11 +90,11 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 
 	jobs, err := client.List(ctx, "", "", "", nil, nil, nil, nil, nil)
 	AzureAPICallsTotal.WithLabelValues().Inc()
-	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name, "", "").Inc()
+	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name).Inc()
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()
-		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name, "", "").Inc()
+		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name).Inc()
 		return nil, err
 	}
 
@@ -118,11 +111,11 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *
 
 	taskCounts, err := client.GetTaskCounts(ctx, *job.ID, nil, nil, nil, nil)
 	AzureAPICallsTotal.WithLabelValues().Inc()
-	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Inc()
+	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name).Inc()
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()
-		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Inc()
+		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name).Inc()
 		return nil, err
 	}
 
