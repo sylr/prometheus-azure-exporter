@@ -13,7 +13,7 @@ RUN go install
 
 # -----------------------------------------------------------------------------
 
-FROM alpine:3.7
+FROM alpine:3.8
 
 WORKDIR /usr/local/bin
 RUN apk --no-cache add ca-certificates
