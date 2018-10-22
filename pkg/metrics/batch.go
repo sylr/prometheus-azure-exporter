@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"context"
-	"time"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
@@ -10,6 +10,16 @@ import (
 )
 
 var (
+	batchPoolsDedicatedNodes = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "pools_dedicated_nodes",
+			Help:      "Number of dedicated nodes for batch account",
+		},
+		[]string{"account", "pool_name"},
+	)
+
 	batchJobsActive = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
@@ -52,51 +62,76 @@ var (
 )
 
 func init() {
+	prometheus.MustRegister(batchPoolsDedicatedNodes)
 	prometheus.MustRegister(batchJobsActive)
 	prometheus.MustRegister(batchJobsRunning)
 	prometheus.MustRegister(batchJobsCompleted)
 	prometheus.MustRegister(batchJobsFailed)
+
+	RegisterUpdateMetricsFunctions("UpdateBatchMetrics", UpdateBatchMetrics)
 }
 
-// UpdateMetrics
-func UpdateMetrics(ctx context.Context) {
-	ticker := time.NewTicker(30 * time.Second)
+// UpdateBatchMetrics
+func UpdateBatchMetrics(ctx context.Context, id string) {
+	contextLogger := log.WithFields(log.Fields{"_id": id})
+	azureClients := azure.GetNewAzureClients()
+	batchAccounts, err := azure.ListSubscriptionBatchAccounts(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
 
-	// Process which updates metrics
-	go func(ctx context.Context) {
-		for t := range ticker.C {
-			log.Debugf("Start metrics update: %s", t)
+	if err != nil {
+		contextLogger.Errorf("Unable to list account azure batch accounts: %s", err)
+		return
+	}
 
-			// We detach the update process so if it takes more than the refresh
-			// time it does not get blocked
-			go func(ctx context.Context, t time.Time) {
-				log.Debugf("Start Batch metrics update: %s", t)
+	for _, account := range batchAccounts {
+		// <!-- POOLS ----------------------------------------------------------
+		pools, err := azure.ListBatchAccountPools(ctx, azureClients, &account)
 
-				jobsMetrics, err := azure.FetchAzureBatchMetrics(ctx)
+		if err != nil {
+			contextLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
+		} else {
+			for _, pool := range pools {
+				batchPoolsDedicatedNodes.WithLabelValues(*account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+
+				contextLogger.WithFields(log.Fields{
+					"_id":             id,
+					"account":         *account.Name,
+					"pool":            *pool.Name,
+					"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
+				}).Debug("Batch pool")
+			}
+		}
+		// ---------------------------------------------------------- POOLS --!>
+
+		// <!-- JOBS -----------------------------------------------------------
+		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, &account)
+
+		if err != nil {
+			contextLogger.Errorf("Unable to list account `%s` jobs: %s", *account.Name, err)
+		} else {
+			for _, job := range jobs {
+				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, &account, &job)
 
 				if err != nil {
-					log.Error(err)
-					return
+					contextLogger.Error(err)
+					continue
 				}
 
-				for _, jobMetrics := range *jobsMetrics {
-					batchJobsActive.WithLabelValues(jobMetrics.Account, jobMetrics.JobID, jobMetrics.JobDisplayName).Set(float64(*jobMetrics.Active))
-					batchJobsRunning.WithLabelValues(jobMetrics.Account, jobMetrics.JobID, jobMetrics.JobDisplayName).Set(float64(*jobMetrics.Running))
-					batchJobsCompleted.WithLabelValues(jobMetrics.Account, jobMetrics.JobID, jobMetrics.JobDisplayName).Set(float64(*jobMetrics.Completed))
-					batchJobsFailed.WithLabelValues(jobMetrics.Account, jobMetrics.JobID, jobMetrics.JobDisplayName).Set(float64(*jobMetrics.Failed))
+				batchJobsActive.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
+				batchJobsRunning.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
+				batchJobsCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
+				batchJobsFailed.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
 
-					log.WithFields(log.Fields{
-						"account":   jobMetrics.Account,
-						"job":       jobMetrics.JobDisplayName,
-						"active":    *jobMetrics.Active,
-						"running":   *jobMetrics.Running,
-						"completed": *jobMetrics.Completed,
-						"failed":    *jobMetrics.Failed,
-					}).Debug("Batch job")
-				}
-
-				log.Debugf("End Batch metrics update: %s", t)
-			}(ctx, t)
+				contextLogger.WithFields(log.Fields{
+					"_id":       id,
+					"account":   *account.Name,
+					"job":       *job.DisplayName,
+					"active":    *taskCounts.Active,
+					"running":   *taskCounts.Running,
+					"completed": *taskCounts.Completed,
+					"failed":    *taskCounts.Failed,
+				}).Debug("Batch job")
+			}
 		}
-	}(ctx)
+		// ----------------------------------------------------------- JOBS --!>
+	}
 }

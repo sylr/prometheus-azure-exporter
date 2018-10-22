@@ -19,7 +19,20 @@ type PrometheusAzureExporterOptions struct {
 	Verbose          []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 	Version          bool   `          long:"version" description:"Show version"`
 	ListeningAddress string `short:"a" long:"address" description:"Listening address" env:"LISTENING_ADDRESS" default:"0.0.0.0"`
-	ListeningPort    uint   `short:"p" long:"port" description:"Listening port" env:"LISTENING_PORT" default:"9000"`
+	ListeningPort    uint   `short:"p" long:"port"    description:"Listening port" env:"LISTENING_PORT" default:"9000"`
+
+	// Env vars used for Azure Authent, see
+	// https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go#L86-L94
+	AzureTenantID            string `env:"AZURE_TENANT_ID" description:"Azure tenant id" required:"true"`
+	AzureSubscriptionID      string `env:"AZURE_SUBSCRIPTION_ID" description:"Azure subscription id" required:"true"`
+	AzureClientID            string `env:"AZURE_CLIENT_ID" description:"Azure client id"`
+	AzureClientSecret        string `env:"AZURE_CLIENT_SECRET" description:"Azure client secret"`
+	AzureCertificatePath     string `env:"AZURE_CERTIFICATE_PATH" description:"Azure certficate path"`
+	AzureCertificatePassword string `env:"AZURE_CERTIFICATE_PASSWORD" description:"Azure certficate password"`
+	AzureUsername            string `env:"AZURE_USERNAME" description:"Azure username"`
+	AzurePassword            string `env:"AZURE_PASSWORD" description:"Azure password"`
+	AzureEnvironment         string `env:"AZURE_ENVIRONMENT" description:"Azure environment"`
+	AzureADResource          string `env:"AZURE_AD_RESOURCE" description:"Azure AD resource"`
 }
 
 var (
@@ -75,10 +88,11 @@ func main() {
 	log.Debugf("Options: %+v", opts)
 	log.Infof("Version: %s", version)
 
+	// Update metrics process
 	ctx := context.Background()
+	go metrics.UpdateMetrics(ctx)
 
-	metrics.UpdateMetrics(ctx)
-
+	// Prometheus http endpoint
 	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe("0.0.0.0:9000", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", opts.ListeningAddress, opts.ListeningPort), nil))
 }
