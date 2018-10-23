@@ -34,60 +34,60 @@ var (
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "pools_dedicated_nodes",
-			Help:      "Number of dedicated nodes for batch account ppol",
+			Name:      "pool_dedicated_nodes",
+			Help:      "Number of dedicated nodes for batch pool",
 		},
-		[]string{"subscription", "resource_group", "account", "pool_name"},
+		[]string{"subscription", "resource_group", "account", "pool"},
 	)
 
 	batchJobsTasksActive = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_tasks_active",
-			Help:      "Number of active batch jobs",
+			Name:      "job_tasks_active",
+			Help:      "Number of active batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job"},
 	)
 
 	batchJobsTasksRunning = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_tasks_running",
-			Help:      "Number of running batch jobs",
+			Name:      "job_tasks_running",
+			Help:      "Number of running batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job"},
 	)
 
 	batchJobsTasksCompleted = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_tasks_completed_total",
-			Help:      "Total number of completed batch jobs",
+			Name:      "job_tasks_completed_total",
+			Help:      "Total number of completed batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job"},
 	)
 
 	batchJobsTasksSucceeded = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_tasks_succeeded_total",
-			Help:      "Total number of succeeded batch jobs",
+			Name:      "job_tasks_succeeded_total",
+			Help:      "Total number of succeeded batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job"},
 	)
 
 	batchJobsTasksFailed = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
-			Name:      "jobs_tasks_failed_total",
-			Help:      "Total number of failed batch jobs",
+			Name:      "job_tasks_failed_total",
+			Help:      "Total number of failed batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job"},
 	)
 )
 

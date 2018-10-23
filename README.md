@@ -23,15 +23,17 @@ You are very welcome to open issues and pull requests if you want to improve it.
 Azure resources
 ---------------
 
-| Namespaces              | Metrics                                                           |
-|-------------------------|-------------------------------------------------------------------|
-| Azure                   | azure_api_calls_total                                             |
-|                         | azure_api_calls_failed_total                                      |
-|                         | azure_api_batch_calls_total{account}                              |
-|                         | azure_api_batch_call_failed_total{account}                        |
-| Batch                   | azure_batch_pools_dedicated_nodes{account, pool_name}             |
-|                         | azure_batch_jobs_tasks_active{account, job_id, job_name}          |
-|                         | azure_batch_jobs_tasks_running{account, job_id, job_name}         |
-|                         | azure_batch_jobs_tasks_completed_total{account, job_id, job_name} |
-|                         | azure_batch_jobs_tasks_succeeded_total{account, job_id, job_name} |
-|                         | azure_batch_jobs_tasks_failed_total{account, job_id, job_name}    |
+| Namespaces              | Metrics                                | Labels
+|-------------------------|----------------------------------------|-----------------------------------------------
+| Azure                   | azure_api_calls_total                  |
+|                         | azure_api_calls_failed_total           |
+|                         | azure_api_batch_calls_total            | subscription, resource_group, account
+|                         | azure_api_batch_calls_failed_total     | subscription, resource_group, account
+| Batch                   | azure_batch_pool_quota                 | subscription, resource_group, account
+|                         | azure_batch_dedicated_core_quota       | subscription, resource_group, account
+|                         | azure_batch_pool_dedicated_nodes       | subscription, resource_group, account, pool
+|                         | azure_batch_job_tasks_active           | subscription, resource_group, account, job_id, job
+|                         | azure_batch_job_tasks_running          | subscription, resource_group, account, job_id, job
+|                         | azure_batch_job_tasks_completed_total  | subscription, resource_group, account, job_id, job
+|                         | azure_batch_job_tasks_succeeded_total  | subscription, resource_group, account, job_id, job
+|                         | azure_batch_job_tasks_failed_total     | subscription, resource_group, account, job_id, job
