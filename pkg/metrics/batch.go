@@ -130,7 +130,7 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 				batchJobsTasksActive.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
 				batchJobsTasksRunning.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
 				batchJobsTasksCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
-				batchJobsTasksCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
+				batchJobsTasksSucceeded.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
 				batchJobsTasksFailed.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
 
 				contextLogger.WithFields(log.Fields{
