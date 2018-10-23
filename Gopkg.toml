@@ -24,8 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-ignored = ["github.com/sylr/prometheus-azure-exporter/*"]
-
 [[constraint]]
   name = "github.com/Azure/azure-sdk-for-go"
   version = "21.3.0"
