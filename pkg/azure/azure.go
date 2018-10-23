@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	// AzureAPICallsTotal Total number of Azure API calls
 	AzureAPICallsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure_api",
@@ -15,6 +16,7 @@ var (
 		[]string{},
 	)
 
+	// AzureAPICallsFailedTotal Total number of failed Azure API calls
 	AzureAPICallsFailedTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure_api",

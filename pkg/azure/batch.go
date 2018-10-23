@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	// AzureAPIBatchCallsTotal Total number of Azure Batch API calls
 	AzureAPIBatchCallsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure_api",
@@ -20,6 +21,7 @@ var (
 		[]string{"account"},
 	)
 
+	// AzureAPIBatchCallsFailedTotal Total number of failed Azure Batch API calls
 	AzureAPIBatchCallsFailedTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure_api",

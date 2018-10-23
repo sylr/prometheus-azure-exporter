@@ -82,7 +82,7 @@ func init() {
 	RegisterUpdateMetricsFunctions("UpdateBatchMetrics", UpdateBatchMetrics)
 }
 
-// UpdateBatchMetrics
+// UpdateBatchMetrics updates batch metrics
 func UpdateBatchMetrics(ctx context.Context, id string) {
 	contextLogger := log.WithFields(log.Fields{"_id": id})
 	azureClients := azure.GetNewAzureClients()

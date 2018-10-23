@@ -5,6 +5,7 @@ import (
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 )
 
+// AzureClients Collection of Azure clients
 type AzureClients struct {
 	batchAccountClients map[string]*azurebatch.AccountClient
 	batchPoolClients    map[string]*azurebatch.PoolClient
@@ -22,7 +23,7 @@ func GetNewAzureClients() *AzureClients {
 	return azc
 }
 
-// GetAccountClient return batch account client for specific subscription
+// GetBatchAccountClient return batch account client for specific subscription
 func (azc *AzureClients) GetBatchAccountClient(subscriptionID string) (*azurebatch.AccountClient, error) {
 	if _, ok := azc.batchAccountClients[subscriptionID]; ok {
 		return azc.batchAccountClients[subscriptionID], nil
