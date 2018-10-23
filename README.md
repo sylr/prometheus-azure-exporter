@@ -32,8 +32,8 @@ Azure resources
 | Batch                   | azure_batch_pool_quota                 | subscription, resource_group, account
 |                         | azure_batch_dedicated_core_quota       | subscription, resource_group, account
 |                         | azure_batch_pool_dedicated_nodes       | subscription, resource_group, account, pool
-|                         | azure_batch_job_tasks_active           | subscription, resource_group, account, job_id, job
-|                         | azure_batch_job_tasks_running          | subscription, resource_group, account, job_id, job
-|                         | azure_batch_job_tasks_completed_total  | subscription, resource_group, account, job_id, job
-|                         | azure_batch_job_tasks_succeeded_total  | subscription, resource_group, account, job_id, job
-|                         | azure_batch_job_tasks_failed_total     | subscription, resource_group, account, job_id, job
+|                         | azure_batch_job_tasks_active           | subscription, resource_group, account, job_id, job_name
+|                         | azure_batch_job_tasks_running          | subscription, resource_group, account, job_id, job_name
+|                         | azure_batch_job_tasks_completed_total  | subscription, resource_group, account, job_id, job_name
+|                         | azure_batch_job_tasks_succeeded_total  | subscription, resource_group, account, job_id, job_name
+|                         | azure_batch_job_tasks_failed_total     | subscription, resource_group, account, job_id, job_name

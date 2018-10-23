@@ -47,7 +47,7 @@ var (
 			Name:      "job_tasks_active",
 			Help:      "Number of active batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksRunning = prometheus.NewGaugeVec(
@@ -57,7 +57,7 @@ var (
 			Name:      "job_tasks_running",
 			Help:      "Number of running batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksCompleted = prometheus.NewCounterVec(
@@ -67,7 +67,7 @@ var (
 			Name:      "job_tasks_completed_total",
 			Help:      "Total number of completed batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksSucceeded = prometheus.NewCounterVec(
@@ -77,7 +77,7 @@ var (
 			Name:      "job_tasks_succeeded_total",
 			Help:      "Total number of succeeded batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksFailed = prometheus.NewCounterVec(
@@ -87,7 +87,7 @@ var (
 			Name:      "job_tasks_failed_total",
 			Help:      "Total number of failed batch job task",
 		},
-		[]string{"subscription", "resource_group", "account", "job_id", "job"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 )
 
@@ -166,7 +166,7 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 					"_id":            id,
 					"resource_group": accountProperties.ResourceGroup,
 					"account":        *account.Name,
-					"job":            *job.DisplayName,
+					"job_name":       *job.DisplayName,
 					"active":         *taskCounts.Active,
 					"running":        *taskCounts.Running,
 					"completed":      *taskCounts.Completed,
