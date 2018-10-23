@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	updateMetricsInterval  = 30
 	updateMetricsFunctions = make(map[string]func(context.Context, string))
 )
 
@@ -20,12 +21,17 @@ func RegisterUpdateMetricsFunctions(name string, f func(context.Context, string)
 	updateMetricsFunctions[name] = f
 }
 
-// UpdateMetrics
+// SetUpdateMetricsInterval sets interval
+func SetUpdateMetricsInterval(interval int) {
+	updateMetricsInterval = interval
+}
+
+// UpdateMetrics main update metrics process
+// This process loops forever so it needs to be detached
 func UpdateMetrics(ctx context.Context) {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(time.Duration(updateMetricsInterval) * time.Second)
 	t := time.Now()
 
-	// Process which updates metrics
 	for {
 		log.Debugf("Start metrics update: %s", t)
 

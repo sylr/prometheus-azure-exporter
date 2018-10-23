@@ -60,6 +60,9 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 
 // ListBatchAccountPools List all batch account's pools
 func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]azurebatch.Pool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
 	accountResourceDetails, err := ParseResourceID(*account.ID)
 	client, err := clients.GetBatchPoolClient(accountResourceDetails.SubscriptionID)
 
@@ -82,6 +85,9 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 
 // ListBatchAccountJobs list batch account jobs
 func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]batch.CloudJob, error) {
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {
@@ -103,6 +109,9 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 
 // GetBatchJobTaskCounts
 func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *azurebatch.Account, job *batch.CloudJob) (*batch.TaskCounts, error) {
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {

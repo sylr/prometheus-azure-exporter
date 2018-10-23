@@ -16,10 +16,11 @@ import (
 
 // PrometheusAzureExporterOptions options
 type PrometheusAzureExporterOptions struct {
-	Verbose          []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-	Version          bool   `          long:"version" description:"Show version"`
-	ListeningAddress string `short:"a" long:"address" description:"Listening address" env:"LISTENING_ADDRESS" default:"0.0.0.0"`
-	ListeningPort    uint   `short:"p" long:"port"    description:"Listening port" env:"LISTENING_PORT" default:"9000"`
+	Verbose          []bool `short:"v"  long:"verbose"   description:"Show verbose debug information"`
+	Version          bool   `           long:"version"   description:"Show version"`
+	ListeningAddress string `short:"a"  long:"address"   description:"Listening address" env:"LISTENING_ADDRESS" default:"0.0.0.0"`
+	ListeningPort    uint   `short:"p"  long:"port"      description:"Listening port" env:"LISTENING_PORT" default:"9000"`
+	UpdateInterval   int    `short:"i"  long:"interval"  description:"Number of seconds between metrics updates" default:"60"`
 
 	// Env vars used for Azure Authent, see
 	// https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go#L86-L94
@@ -36,9 +37,12 @@ type PrometheusAzureExporterOptions struct {
 }
 
 var (
-	opts    = PrometheusAzureExporterOptions{}
-	parser  = flags.NewParser(&opts, flags.Default)
-	version = "v0.0.1"
+	// Options daemon options
+	Options = PrometheusAzureExporterOptions{}
+	// Version daemon version
+	Version = "v0.0.1"
+	// parser
+	parser = flags.NewParser(&Options, flags.Default)
 )
 
 func init() {
@@ -59,7 +63,7 @@ func main() {
 	// looping for --version in args
 	for _, val := range os.Args {
 		if val == "--version" {
-			fmt.Printf("prometheus-azure-exporter version %s\n", version)
+			fmt.Printf("prometheus-azure-exporter version %s\n", Version)
 			os.Exit(0)
 		} else if val == "--" {
 			break
@@ -78,21 +82,28 @@ func main() {
 
 	// Update logging level
 	switch {
-	case len(opts.Verbose) >= 1:
+	case len(Options.Verbose) >= 1:
 		log.SetLevel(log.DebugLevel)
 	default:
 		log.SetLevel(log.InfoLevel)
 	}
 
 	// Loggin options
-	log.Debugf("Options: %+v", opts)
-	log.Infof("Version: %s", version)
+	log.Debugf("Options: %+v", Options)
+	log.Infof("Version: %s", Version)
 
 	// Update metrics process
 	ctx := context.Background()
+	metrics.SetUpdateMetricsInterval(Options.UpdateInterval)
 	go metrics.UpdateMetrics(ctx)
 
 	// Prometheus http endpoint
+	listeningAddress := fmt.Sprintf("%s:%d", Options.ListeningAddress, Options.ListeningPort)
 	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", opts.ListeningAddress, opts.ListeningPort), nil))
+	err := http.ListenAndServe(listeningAddress, nil)
+
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 }
