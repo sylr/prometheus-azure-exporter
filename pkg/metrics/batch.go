@@ -10,14 +10,34 @@ import (
 )
 
 var (
+	batchPoolQuota = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "pool_quota",
+			Help:      "Quota of pool for batch account",
+		},
+		[]string{"subscription", "resource_group", "account"},
+	)
+
+	batchDedicatedCoreQuota = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "dedicated_core_quota",
+			Help:      "Quota of dedicated core for batch account",
+		},
+		[]string{"subscription", "resource_group", "account"},
+	)
+
 	batchPoolsDedicatedNodes = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
 			Name:      "pools_dedicated_nodes",
-			Help:      "Number of dedicated nodes for batch account",
+			Help:      "Number of dedicated nodes for batch account ppol",
 		},
-		[]string{"account", "pool_name"},
+		[]string{"subscription", "resource_group", "account", "pool_name"},
 	)
 
 	batchJobsTasksActive = prometheus.NewGaugeVec(
@@ -27,7 +47,7 @@ var (
 			Name:      "jobs_tasks_active",
 			Help:      "Number of active batch jobs",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksRunning = prometheus.NewGaugeVec(
@@ -37,7 +57,7 @@ var (
 			Name:      "jobs_tasks_running",
 			Help:      "Number of running batch jobs",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksCompleted = prometheus.NewCounterVec(
@@ -47,7 +67,7 @@ var (
 			Name:      "jobs_tasks_completed_total",
 			Help:      "Total number of completed batch jobs",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksSucceeded = prometheus.NewCounterVec(
@@ -57,7 +77,7 @@ var (
 			Name:      "jobs_tasks_succeeded_total",
 			Help:      "Total number of succeeded batch jobs",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 
 	batchJobsTasksFailed = prometheus.NewCounterVec(
@@ -67,11 +87,13 @@ var (
 			Name:      "jobs_tasks_failed_total",
 			Help:      "Total number of failed batch jobs",
 		},
-		[]string{"account", "job_id", "job_name"},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
 )
 
 func init() {
+	prometheus.MustRegister(batchPoolQuota)
+	prometheus.MustRegister(batchDedicatedCoreQuota)
 	prometheus.MustRegister(batchPoolsDedicatedNodes)
 	prometheus.MustRegister(batchJobsTasksActive)
 	prometheus.MustRegister(batchJobsTasksRunning)
@@ -94,6 +116,12 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 	}
 
 	for _, account := range batchAccounts {
+		accountProperties, _ := azure.ParseResourceID(*account.ID)
+		sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
+
+		batchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
+		batchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
+
 		// <!-- POOLS ----------------------------------------------------------
 		pools, err := azure.ListBatchAccountPools(ctx, azureClients, &account)
 
@@ -101,10 +129,11 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 			contextLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
 		} else {
 			for _, pool := range pools {
-				batchPoolsDedicatedNodes.WithLabelValues(*account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+				batchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
 
 				contextLogger.WithFields(log.Fields{
 					"_id":             id,
+					"resource_group":  accountProperties.ResourceGroup,
 					"account":         *account.Name,
 					"pool":            *pool.Name,
 					"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
@@ -127,21 +156,22 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 					continue
 				}
 
-				batchJobsTasksActive.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
-				batchJobsTasksRunning.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
-				batchJobsTasksCompleted.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
-				batchJobsTasksSucceeded.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
-				batchJobsTasksFailed.WithLabelValues(*account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
+				batchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
+				batchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
+				batchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
+				batchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
+				batchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
 
 				contextLogger.WithFields(log.Fields{
-					"_id":       id,
-					"account":   *account.Name,
-					"job":       *job.DisplayName,
-					"active":    *taskCounts.Active,
-					"running":   *taskCounts.Running,
-					"completed": *taskCounts.Completed,
-					"succeeded": *taskCounts.Succeeded,
-					"failed":    *taskCounts.Failed,
+					"_id":            id,
+					"resource_group": accountProperties.ResourceGroup,
+					"account":        *account.Name,
+					"job":            *job.DisplayName,
+					"active":         *taskCounts.Active,
+					"running":        *taskCounts.Running,
+					"completed":      *taskCounts.Completed,
+					"succeeded":      *taskCounts.Succeeded,
+					"failed":         *taskCounts.Failed,
 				}).Debug("Batch job")
 			}
 		}

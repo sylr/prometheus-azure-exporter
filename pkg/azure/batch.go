@@ -18,7 +18,7 @@ var (
 			Name:      "calls_total",
 			Help:      "Total number of calls to the Azure API",
 		},
-		[]string{"account"},
+		[]string{"subscription", "resource_group", "account"},
 	)
 
 	// AzureAPIBatchCallsFailedTotal Total number of failed Azure Batch API calls
@@ -29,7 +29,7 @@ var (
 			Name:      "calls_failed_total",
 			Help:      "Total number of failed calls to the Azure API",
 		},
-		[]string{"account"},
+		[]string{"subscription", "resource_group", "account"},
 	)
 )
 
@@ -66,6 +66,7 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 	defer cancel()
 
 	accountResourceDetails, err := ParseResourceID(*account.ID)
+	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBatchPoolClient(accountResourceDetails.SubscriptionID)
 
 	if err != nil {
@@ -74,11 +75,11 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 
 	accountPools, err := client.ListByBatchAccount(ctx, accountResourceDetails.ResourceGroup, *account.Name, nil, "", "")
 	AzureAPICallsTotal.WithLabelValues().Inc()
-	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name).Inc()
+	AzureAPIBatchCallsTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()
-		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name).Inc()
+		AzureAPIBatchCallsFailedTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 		return nil, err
 	}
 
@@ -90,6 +91,8 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
+	accountResourceDetails, err := ParseResourceID(*account.ID)
+	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {
@@ -98,11 +101,11 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 
 	jobs, err := client.List(ctx, "", "", "", nil, nil, nil, nil, nil)
 	AzureAPICallsTotal.WithLabelValues().Inc()
-	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name).Inc()
+	AzureAPIBatchCallsTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()
-		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name).Inc()
+		AzureAPIBatchCallsFailedTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 		return nil, err
 	}
 
@@ -114,6 +117,8 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
+	accountResourceDetails, err := ParseResourceID(*account.ID)
+	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {
@@ -122,11 +127,11 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *
 
 	taskCounts, err := client.GetTaskCounts(ctx, *job.ID, nil, nil, nil, nil)
 	AzureAPICallsTotal.WithLabelValues().Inc()
-	AzureAPIBatchCallsTotal.WithLabelValues(*account.Name).Inc()
+	AzureAPIBatchCallsTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()
-		AzureAPIBatchCallsFailedTotal.WithLabelValues(*account.Name).Inc()
+		AzureAPIBatchCallsFailedTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 		return nil, err
 	}
 
