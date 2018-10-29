@@ -119,8 +119,10 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
 		sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
 
+		// <!-- metrics
 		batchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
 		batchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
+		// metrics -->
 
 		// <!-- POOLS ----------------------------------------------------------
 		pools, err := azure.ListBatchAccountPools(ctx, azureClients, &account)
@@ -129,18 +131,20 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 			contextLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
 		} else {
 			for _, pool := range pools {
+				// <!-- metrics
 				batchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+				// metrics -->
 
 				contextLogger.WithFields(log.Fields{
 					"_id":             id,
 					"resource_group":  accountProperties.ResourceGroup,
 					"account":         *account.Name,
-					"pool":            *pool.Name,
+					"pool_name":       *pool.Name,
 					"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
 				}).Debug("Batch pool")
 			}
 		}
-		// ---------------------------------------------------------- POOLS --!>
+		// ----------------------------------------------------------- POOLS -->
 
 		// <!-- JOBS -----------------------------------------------------------
 		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, &account)
@@ -156,17 +160,21 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 					continue
 				}
 
+				// <!-- metrics
 				batchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
 				batchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
 				batchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
 				batchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
 				batchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
+				// metrics -->
 
 				contextLogger.WithFields(log.Fields{
 					"_id":            id,
 					"resource_group": accountProperties.ResourceGroup,
 					"account":        *account.Name,
+					"job_id":         *job.ID,
 					"job_name":       *job.DisplayName,
+					"pool":           *job.PoolInfo.PoolID,
 					"active":         *taskCounts.Active,
 					"running":        *taskCounts.Running,
 					"completed":      *taskCounts.Completed,
