@@ -16,7 +16,7 @@ in terms of monitoring than what Microsoft is currently proposing.
 Disclaimer
 ----------
 
-This is my 2ng Go project so It is far from being perfect in terms of design and implementation.
+This is my 2nd Go project so It is far from being perfect in terms of design and implementation.
 
 You are very welcome to open issues and pull requests if you want to improve it.
 
@@ -24,7 +24,7 @@ Azure resources
 ---------------
 
 | Namespaces              | Metrics                                | Labels
-|-------------------------|----------------------------------------|-----------------------------------------------
+|-------------------------|----------------------------------------|--------------------------------------------------------
 | Azure                   | azure_api_calls_total                  |
 |                         | azure_api_calls_failed_total           |
 |                         | azure_api_batch_calls_total            | subscription, resource_group, account
