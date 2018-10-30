@@ -15,8 +15,8 @@
     "services/preview/subscription/mgmt/2018-03-01-preview/subscription",
     "version"
   ]
-  revision = "da91af54816b4cf72949c225a2d0980f51fab01b"
-  version = "v21.3.0"
+  revision = "182e361c74920501df5b492a982002fcd49b5a29"
+  source = "https://github.com/sylr/azure-sdk-for-go.git"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -107,6 +107,16 @@
   revision = "5633e0862627c011927fa39556acae8b1f1df58a"
 
 [[projects]]
+  name = "github.com/prometheus/client_golang"
+  packages = [
+    "prometheus",
+    "prometheus/internal",
+    "prometheus/promhttp"
+  ]
+  revision = "3347d9b107629a2e31c401594dfa45e1a894d16c"
+  source = "github.com/sylr/prometheus-client-golang"
+
+[[projects]]
   branch = "master"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
@@ -144,16 +154,6 @@
   packages = ["."]
   revision = "ad15b42461921f1fb3529b058c6786c6a45d5162"
   version = "v1.1.1"
-
-[[projects]]
-  branch = "counter-set"
-  name = "github.com/sylr/prometheus-client-golang"
-  packages = [
-    "prometheus",
-    "prometheus/internal",
-    "prometheus/promhttp"
-  ]
-  revision = "c1fa843754704ab0c3438d8748f6d644e9bde9de"
 
 [[projects]]
   name = "go.opencensus.io"
@@ -285,6 +285,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ecc2dd9ceb649a3f60da2e926ba0319020265baa90d40d6dca0c071ea089043f"
+  inputs-digest = "f58d988ac363c2471ab6acb8d7c2bf2e70475aabe10160b504ea7a69843e5ff2"
   solver-name = "gps-cdcl"
   solver-version = 1

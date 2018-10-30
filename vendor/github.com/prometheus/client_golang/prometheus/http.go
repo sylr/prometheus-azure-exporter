@@ -157,7 +157,7 @@ var now nower = nowFunc(func() time.Time {
 // the request header, it creates a race with any writes to the header performed
 // during request handling.  httputil.ReverseProxy is a prominent example for a
 // handler performing such writes. (4) It has additional issues with HTTP/2, cf.
-// https://github.com/sylr/prometheus-client-golang/issues/272.
+// https://github.com/prometheus/client_golang/issues/272.
 func InstrumentHandler(handlerName string, handler http.Handler) http.HandlerFunc {
 	return InstrumentHandlerFunc(handlerName, handler.ServeHTTP)
 }

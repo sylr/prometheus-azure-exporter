@@ -42,8 +42,9 @@
   version = "1.1.1"
 
 [[constraint]]
-  name = "github.com/sylr/prometheus-client-golang"
-  branch = "counter-set"
+  name = "github.com/prometheus/client_golang"
+  revision = "3347d9b107629a2e31c401594dfa45e1a894d16c"
+  source = "github.com/sylr/prometheus-client-golang"
 
 [prune]
   go-tests = true

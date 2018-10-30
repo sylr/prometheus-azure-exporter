@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
-	"github.com/sylr/prometheus-client-golang/prometheus"
 )
 
 var (
