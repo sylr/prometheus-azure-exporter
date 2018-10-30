@@ -105,8 +105,8 @@ func init() {
 }
 
 // UpdateBatchMetrics updates batch metrics
-func UpdateBatchMetrics(ctx context.Context, id string) {
-	contextLogger := log.WithFields(log.Fields{"_id": id})
+func UpdateBatchMetrics(ctx context.Context) {
+	contextLogger := log.WithFields(log.Fields{"_id": ctx.Value("id").(string)})
 	azureClients := azure.GetNewAzureClients()
 	batchAccounts, err := azure.ListSubscriptionBatchAccounts(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
 
@@ -137,7 +137,7 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 				// metrics -->
 
 				contextLogger.WithFields(log.Fields{
-					"_id":             id,
+					"_id":             ctx.Value("id").(string),
 					"resource_group":  accountProperties.ResourceGroup,
 					"account":         *account.Name,
 					"pool_name":       *pool.Name,
@@ -182,7 +182,7 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 				// metrics -->
 
 				contextLogger.WithFields(log.Fields{
-					"_id":            id,
+					"_id":            ctx.Value("id").(string),
 					"resource_group": accountProperties.ResourceGroup,
 					"account":        *account.Name,
 					"job_id":         *job.ID,

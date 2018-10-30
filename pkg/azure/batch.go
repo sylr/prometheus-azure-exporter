@@ -6,6 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	log "github.com/sirupsen/logrus"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
 	"github.com/sylr/prometheus-client-golang/prometheus"
 )
 
@@ -40,6 +42,22 @@ func init() {
 
 // ListSubscriptionBatchAccounts List all subscription batch accounts
 func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, subscriptionID string) ([]azurebatch.Account, error) {
+	c := tools.GetCache(5 * time.Minute)
+
+	contextLogger := log.WithFields(log.Fields{
+		"_id":          ctx.Value("id").(string),
+		"subscription": subscriptionID,
+	})
+
+	if caccounts, ok := c.Get(subscriptionID + "-accounts"); ok {
+		if accounts, ok := caccounts.([]azurebatch.Account); ok {
+			contextLogger.Debugf("Got []azurebatch.Account from cache")
+			return accounts, nil
+		} else {
+			contextLogger.Errorf("Failed to cast object from cache back to []azurebatch.Account")
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
@@ -49,7 +67,7 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 		return nil, err
 	}
 
-	batchAccounts, err := client.List(ctx)
+	accounts, err := client.List(ctx)
 	AzureAPICallsTotal.WithLabelValues().Inc()
 
 	if err != nil {
@@ -57,11 +75,30 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 		return nil, err
 	}
 
-	return batchAccounts.Values(), nil
+	vals := accounts.Values()
+	c.SetDefault(subscriptionID+"-accounts", vals)
+
+	return vals, nil
 }
 
 // ListBatchAccountPools List all batch account's pools
 func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]azurebatch.Pool, error) {
+	c := tools.GetCache(5 * time.Minute)
+
+	contextLogger := log.WithFields(log.Fields{
+		"_id":     ctx.Value("id").(string),
+		"account": *account.Name,
+	})
+
+	if cpools, ok := c.Get(*account.Name + "-pools"); ok {
+		if pools, ok := cpools.([]azurebatch.Pool); ok {
+			contextLogger.Debugf("Got []azurebatch.Pool from cache")
+			return pools, nil
+		} else {
+			contextLogger.Errorf("Failed to cast object from cache back to []azurebatch.Pool")
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
@@ -73,7 +110,7 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 		return nil, err
 	}
 
-	accountPools, err := client.ListByBatchAccount(ctx, accountResourceDetails.ResourceGroup, *account.Name, nil, "", "")
+	pools, err := client.ListByBatchAccount(ctx, accountResourceDetails.ResourceGroup, *account.Name, nil, "", "")
 	AzureAPICallsTotal.WithLabelValues().Inc()
 	AzureAPIBatchCallsTotal.WithLabelValues(*sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name).Inc()
 
@@ -83,11 +120,30 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 		return nil, err
 	}
 
-	return accountPools.Values(), nil
+	vals := pools.Values()
+	c.SetDefault(*account.Name+"-pools", vals)
+
+	return vals, nil
 }
 
 // ListBatchAccountJobs list batch account jobs
 func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]batch.CloudJob, error) {
+	c := tools.GetCache(5 * time.Minute)
+
+	contextLogger := log.WithFields(log.Fields{
+		"_id":     ctx.Value("id").(string),
+		"account": *account.Name,
+	})
+
+	if cjobs, ok := c.Get(*account.Name + "-jobs"); ok {
+		if jobs, ok := cjobs.([]batch.CloudJob); ok {
+			contextLogger.Debugf("Got []batch.CloudJob from cache")
+			return jobs, nil
+		} else {
+			contextLogger.Errorf("Failed to cast object from cache back to []batch.CloudJob")
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
@@ -109,10 +165,13 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 		return nil, err
 	}
 
+	vals := jobs.Values()
+	c.SetDefault(*account.Name+"-jobs", vals)
+
 	return jobs.Values(), nil
 }
 
-// GetBatchJobTaskCounts
+// GetBatchJobTaskCounts get job tasks metrics
 func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *azurebatch.Account, job *batch.CloudJob) (*batch.TaskCounts, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()

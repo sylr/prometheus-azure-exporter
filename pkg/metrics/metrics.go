@@ -12,12 +12,12 @@ import (
 
 var (
 	updateMetricsInterval  = 30
-	updateMetricsFunctions = make(map[string]func(context.Context, string))
+	updateMetricsFunctions = make(map[string]func(context.Context))
 )
 
 // RegisterUpdateMetricsFunctions allows you to register a function
 // that will update prometheus metrics
-func RegisterUpdateMetricsFunctions(name string, f func(context.Context, string)) {
+func RegisterUpdateMetricsFunctions(name string, f func(context.Context)) {
 	updateMetricsFunctions[name] = f
 }
 
@@ -39,15 +39,17 @@ func UpdateMetrics(ctx context.Context) {
 		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions {
 			// We detach the update process so if it takes more than the refresh
 			// time it does not get blocked
-			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context, string), t time.Time) {
+			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context), t time.Time) {
 				id := hashTime(t)
 				fields := log.Fields{
 					"_id":  id,
 					"name": updateMetricsFuncName,
 				}
 
+				ctx = context.WithValue(ctx, "id", id)
+
 				log.WithFields(fields).Debug("Start update metrics function")
-				updateMetricsFunc(ctx, id)
+				updateMetricsFunc(ctx)
 				log.WithFields(fields).Debug("End update metrics function")
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
 		}
