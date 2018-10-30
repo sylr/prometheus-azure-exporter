@@ -29,6 +29,12 @@ func SetUpdateMetricsInterval(interval int) {
 // UpdateMetrics main update metrics process
 // This process loops forever so it needs to be detached
 func UpdateMetrics(ctx context.Context) {
+	// Aligning udate metric processes with minute start
+	sec := 60 - (time.Now().Unix() % 60)
+	nsec := time.Now().UnixNano() - (time.Now().Unix() * 1000000000)
+	log.Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
+	time.Sleep(time.Second*time.Duration(sec) - time.Duration(nsec))
+
 	ticker := time.NewTicker(time.Duration(updateMetricsInterval) * time.Second)
 	t := time.Now()
 
