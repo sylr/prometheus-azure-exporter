@@ -102,6 +102,11 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/patrickmn/go-cache"
+  packages = ["."]
+  revision = "5633e0862627c011927fa39556acae8b1f1df58a"
+
+[[projects]]
   branch = "master"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
@@ -280,6 +285,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "469b77433e77361e9517f05ea0929a7c1c7ae87107bac3e9d12c2abf2cbbb594"
+  inputs-digest = "ecc2dd9ceb649a3f60da2e926ba0319020265baa90d40d6dca0c071ea089043f"
   solver-name = "gps-cdcl"
   solver-version = 1

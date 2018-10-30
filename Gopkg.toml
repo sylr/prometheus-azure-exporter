@@ -26,7 +26,8 @@
 
 [[constraint]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "21.3.0"
+  revision = "182e361c74920501df5b492a982002fcd49b5a29"
+  source = "https://github.com/sylr/azure-sdk-for-go.git"
 
 [[constraint]]
   name = "github.com/Azure/go-autorest"
@@ -47,3 +48,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/patrickmn/go-cache"
+  revision = "5633e0862627c011927fa39556acae8b1f1df58a"
