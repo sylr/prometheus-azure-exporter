@@ -128,6 +128,7 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 		pools, err := azure.ListBatchAccountPools(ctx, azureClients, &account)
 
 		if err != nil {
+			batchPoolsDedicatedNodes.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
 			contextLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
 		} else {
 			for _, pool := range pools {
@@ -150,12 +151,24 @@ func UpdateBatchMetrics(ctx context.Context, id string) {
 		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, &account)
 
 		if err != nil {
+			batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
+			batchJobsTasksRunning.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
+			batchJobsTasksCompleted.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
+			batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
+			batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
+
 			contextLogger.Errorf("Unable to list account `%s` jobs: %s", *account.Name, err)
 		} else {
 			for _, job := range jobs {
 				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, &account, &job)
 
 				if err != nil {
+					batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
+					batchJobsTasksRunning.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
+					batchJobsTasksCompleted.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
+					batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
+					batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
+
 					contextLogger.Error(err)
 					continue
 				}
