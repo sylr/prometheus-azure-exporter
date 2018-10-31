@@ -7,16 +7,19 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/metrics"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
 )
 
 // PrometheusAzureExporterOptions options
 type PrometheusAzureExporterOptions struct {
 	Verbose          []bool `short:"v"  long:"verbose"   description:"Show verbose debug information"`
+	JSONOutput       bool   `short:"j"  long:"json"      description:"Use json format for output"`
 	Version          bool   `           long:"version"   description:"Show version"`
 	ListeningAddress string `short:"a"  long:"address"   description:"Listening address" env:"LISTENING_ADDRESS" default:"0.0.0.0"`
 	ListeningPort    uint   `short:"p"  long:"port"      description:"Listening port" env:"LISTENING_PORT" default:"9000"`
@@ -46,18 +49,19 @@ var (
 )
 
 func init() {
-    // Log as JSON instead of the default ASCII formatter.
-    log.SetFormatter(&log.TextFormatter{
-        DisableColors:  true,
-        DisableSorting: false,
-    })
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors:  true,
+		DisableSorting: false,
+		SortingFunc:    tools.SortLogKeys,
+	})
 
-    // Output to stdout instead of the default stderr
-    // Can be any io.Writer, see below for File example
-    log.SetOutput(os.Stdout)
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
 
-    // Only log the warning severity or above.
-    log.SetLevel(log.InfoLevel)
+	// Only log the info severity or above.
+	log.SetLevel(log.InfoLevel)
 }
 
 // main
@@ -88,6 +92,13 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	default:
 		log.SetLevel(log.InfoLevel)
+	}
+
+	// JSON formatter
+	if Options.JSONOutput {
+		log.SetFormatter(&log.JSONFormatter{
+			TimestampFormat: time.RFC3339Nano,
+		})
 	}
 
 	// Loggin options

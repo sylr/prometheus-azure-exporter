@@ -138,11 +138,12 @@ func UpdateBatchMetrics(ctx context.Context) {
 
 				contextLogger.WithFields(log.Fields{
 					"_id":             ctx.Value("id").(string),
-					"resource_group":  accountProperties.ResourceGroup,
+					"metric":          "pool",
+					"rg":              accountProperties.ResourceGroup,
 					"account":         *account.Name,
-					"pool_name":       *pool.Name,
+					"pool":            *pool.Name,
 					"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
-				}).Debug("Batch pool")
+				}).Debug("")
 			}
 		}
 		// ----------------------------------------------------------- POOLS -->
@@ -182,18 +183,19 @@ func UpdateBatchMetrics(ctx context.Context) {
 				// metrics -->
 
 				contextLogger.WithFields(log.Fields{
-					"_id":            ctx.Value("id").(string),
-					"resource_group": accountProperties.ResourceGroup,
-					"account":        *account.Name,
-					"job_id":         *job.ID,
-					"job_name":       *job.DisplayName,
-					"pool":           *job.PoolInfo.PoolID,
-					"active":         *taskCounts.Active,
-					"running":        *taskCounts.Running,
-					"completed":      *taskCounts.Completed,
-					"succeeded":      *taskCounts.Succeeded,
-					"failed":         *taskCounts.Failed,
-				}).Debug("Batch job")
+					"_id":       ctx.Value("id").(string),
+					"metric":    "job",
+					"rg":        accountProperties.ResourceGroup,
+					"account":   *account.Name,
+					"job_id":    *job.ID,
+					"job":       *job.DisplayName,
+					"pool":      *job.PoolInfo.PoolID,
+					"active":    *taskCounts.Active,
+					"running":   *taskCounts.Running,
+					"completed": *taskCounts.Completed,
+					"succeeded": *taskCounts.Succeeded,
+					"failed":    *taskCounts.Failed,
+				}).Debug("")
 			}
 		}
 		// ----------------------------------------------------------- JOBS --!>

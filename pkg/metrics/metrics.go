@@ -32,14 +32,14 @@ func UpdateMetrics(ctx context.Context) {
 	// Aligning udate metric processes with minute start
 	sec := 60 - (time.Now().Unix() % 60)
 	nsec := time.Now().UnixNano() - (time.Now().Unix() * 1000000000)
-	log.Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
+	log.WithField("_id", "000000000000").Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
 	time.Sleep(time.Second*time.Duration(sec) - time.Duration(nsec))
 
 	ticker := time.NewTicker(time.Duration(updateMetricsInterval) * time.Second)
 	t := time.Now()
 
 	for {
-		log.Debugf("Start metrics update: %s", t)
+		log.WithField("_id", "000000000000").Debugf("Start metrics update: %s", t)
 
 		// Loop over all update functions metrics
 		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions {
@@ -48,8 +48,8 @@ func UpdateMetrics(ctx context.Context) {
 			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context), t time.Time) {
 				id := hashTime(t)
 				fields := log.Fields{
-					"_id":  id,
-					"name": updateMetricsFuncName,
+					"_id":      id,
+					"function": updateMetricsFuncName,
 				}
 
 				ctx = context.WithValue(ctx, "id", id)
@@ -69,5 +69,5 @@ func hashTime(t time.Time) string {
 	io.WriteString(h, t.String())
 	s := fmt.Sprintf("%x", h.Sum(nil))
 
-	return s[0:16]
+	return s[0:12]
 }
