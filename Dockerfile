@@ -8,7 +8,7 @@ RUN apk update && apk upgrade && apk add --no-cache git
 RUN uname -a
 RUN go version
 
-RUN go build -ldflags "-X main.version=$(git describe --dirty --broken)"
+RUN go build -ldflags "-X main.Version=$(git describe --dirty --broken || git rev-parse --short HEAD)"
 RUN go install
 
 # -----------------------------------------------------------------------------
