@@ -30,8 +30,12 @@ func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID 
 		return nil, err
 	}
 
+	t0 := time.Now()
 	sub, err := client.Get(ctx, subscriptionID)
+	t1 := time.Since(t0).Seconds()
+
 	AzureAPICallsTotal.WithLabelValues().Inc()
+	AzureAPICallsDurationSeconds.WithLabelValues().Observe(t1)
 
 	if err != nil {
 		AzureAPICallsFailedTotal.WithLabelValues().Inc()

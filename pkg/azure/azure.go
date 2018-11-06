@@ -26,9 +26,21 @@ var (
 		},
 		[]string{},
 	)
+
+	// AzureAPICallsDurationSeconds Duration of Azure API calls in seconds
+	AzureAPICallsDurationSeconds = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Namespace: "azure_api",
+			Subsystem: "",
+			Name:      "calls_duration_seconds",
+			Help:      "Duration of Azure API calls in seconds",
+		},
+		[]string{},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(AzureAPICallsTotal)
 	prometheus.MustRegister(AzureAPICallsFailedTotal)
+	prometheus.MustRegister(AzureAPICallsDurationSeconds)
 }
