@@ -115,7 +115,7 @@ func UpdateBatchMetrics(ctx context.Context) {
 		return
 	}
 
-	for _, account := range batchAccounts {
+	for _, account := range *batchAccounts {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
 		sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
 

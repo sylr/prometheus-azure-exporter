@@ -43,7 +43,7 @@ var (
 			Help:      "Duration of Azure Batch API calls in seconds",
 		},
 		[]string{"subscription", "resource_group", "account"},
-)
+	)
 )
 
 func init() {
@@ -53,7 +53,7 @@ func init() {
 }
 
 // ListSubscriptionBatchAccounts List all subscription batch accounts
-func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, subscriptionID string) ([]azurebatch.Account, error) {
+func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, subscriptionID string) (*[]azurebatch.Account, error) {
 	c := tools.GetCache(5 * time.Minute)
 
 	contextLogger := log.WithFields(log.Fields{
@@ -62,7 +62,7 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 	})
 
 	if caccounts, ok := c.Get(subscriptionID + "-accounts"); ok {
-		if accounts, ok := caccounts.([]azurebatch.Account); ok {
+		if accounts, ok := caccounts.(*[]azurebatch.Account); ok {
 			contextLogger.Debugf("Got []azurebatch.Account from cache")
 			return accounts, nil
 		} else {
@@ -92,9 +92,9 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 	}
 
 	vals := accounts.Values()
-	c.SetDefault(subscriptionID+"-accounts", vals)
+	c.SetDefault(subscriptionID+"-accounts", &vals)
 
-	return vals, nil
+	return &vals, nil
 }
 
 // ListBatchAccountPools List all batch account's pools
