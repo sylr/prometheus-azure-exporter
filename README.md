@@ -45,4 +45,4 @@ Azure resources
 |                         | azure_batch_job_tasks_succeeded_total           | subscription, resource_group, account, job_id, job_name
 |                         | azure_batch_job_tasks_failed_total              | subscription, resource_group, account, job_id, job_name
 
-_italic represents vectors issued from summary metrics to be used with [histograms](https://prometheus.io/docs/practices/histograms/#quantiles)_
+_italic represents vectors issued from summary metrics_
