@@ -116,11 +116,16 @@ func UpdateBatchMetrics(ctx context.Context) {
 	}
 
 	for _, account := range *batchAccounts {
-		contextLogger = contextLogger.WithFields(log.Fields{
+		accountProperties, _ := azure.ParseResourceID(*account.ID)
+
+		// logger
+		accountLogger := contextLogger.WithFields(log.Fields{
 			"_id":     ctx.Value("id").(string),
+			"rg":      accountProperties.ResourceGroup,
 			"account": *account.Name,
 		})
-		accountProperties, _ := azure.ParseResourceID(*account.ID)
+
+		// subscription
 		sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
 
 		// <!-- metrics
@@ -140,11 +145,8 @@ func UpdateBatchMetrics(ctx context.Context) {
 				batchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
 				// metrics -->
 
-				contextLogger.WithFields(log.Fields{
-					"_id":             ctx.Value("id").(string),
+				accountLogger.WithFields(log.Fields{
 					"metric":          "pool",
-					"rg":              accountProperties.ResourceGroup,
-					"account":         *account.Name,
 					"pool":            *pool.Name,
 					"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
 				}).Debug("")
@@ -162,17 +164,22 @@ func UpdateBatchMetrics(ctx context.Context) {
 			batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
 			batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
 
-			contextLogger.Errorf("Unable to list account `%s` jobs: %s", *account.Name, err)
+			accountLogger.Errorf("Unable to list account jobs: %s", err)
 		} else {
 			for _, job := range jobs {
+				jobLogger := accountLogger.WithFields(log.Fields{
+					"job_id": *job.ID,
+				})
+
+				// job task count
 				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, &account, &job)
-				displayName := *job.ID
 
 				// job.DisplayName can be nil but we don't want that
+				displayName := *job.ID
 				if job.DisplayName != nil {
 					displayName = *job.DisplayName
 				} else {
-					contextLogger.Warnf("Job `%s` has no display name, defaulting to job.ID", *job.ID)
+					jobLogger.Warnf("Job has no display name, defaulting to job.ID")
 				}
 
 				if err != nil {
@@ -194,12 +201,8 @@ func UpdateBatchMetrics(ctx context.Context) {
 				batchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
 				// metrics -->
 
-				contextLogger.WithFields(log.Fields{
-					"_id":       ctx.Value("id").(string),
+				jobLogger.WithFields(log.Fields{
 					"metric":    "job",
-					"rg":        accountProperties.ResourceGroup,
-					"account":   *account.Name,
-					"job_id":    *job.ID,
 					"job":       displayName,
 					"pool":      *job.PoolInfo.PoolID,
 					"active":    *taskCounts.Active,

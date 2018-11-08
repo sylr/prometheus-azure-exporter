@@ -128,8 +128,11 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]azurebatch.Pool, error) {
 	c := tools.GetCache(5 * time.Minute)
 
+	accountResourceDetails, err := ParseResourceID(*account.ID)
+
 	contextLogger := log.WithFields(log.Fields{
 		"_id":     ctx.Value("id").(string),
+		"rg":      accountResourceDetails.ResourceGroup,
 		"account": *account.Name,
 	})
 
@@ -145,7 +148,6 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
 	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBatchPoolClient(accountResourceDetails.SubscriptionID)
 
@@ -176,8 +178,11 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]batch.CloudJob, error) {
 	c := tools.GetCache(5 * time.Minute)
 
+	accountResourceDetails, err := ParseResourceID(*account.ID)
+
 	contextLogger := log.WithFields(log.Fields{
 		"_id":     ctx.Value("id").(string),
+		"rg":      accountResourceDetails.ResourceGroup,
 		"account": *account.Name,
 	})
 
@@ -193,7 +198,6 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
 	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
