@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	updateMetricsInterval  = 30
+	updateMetricsInterval  = 30 * time.Second
 	updateMetricsFunctions = make(map[string]func(context.Context))
 )
 
@@ -22,8 +22,13 @@ func RegisterUpdateMetricsFunctions(name string, f func(context.Context)) {
 }
 
 // SetUpdateMetricsInterval sets interval
-func SetUpdateMetricsInterval(interval int) {
+func SetUpdateMetricsInterval(interval time.Duration) {
 	updateMetricsInterval = interval
+}
+
+// GetUpdateMetricsInterval gets interval
+func GetUpdateMetricsInterval() time.Duration {
+	return updateMetricsInterval
 }
 
 // UpdateMetrics main update metrics process
@@ -35,7 +40,7 @@ func UpdateMetrics(ctx context.Context) {
 	log.WithField("_id", "000000000000").Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
 	time.Sleep(time.Second*time.Duration(sec) - time.Duration(nsec))
 
-	ticker := time.NewTicker(time.Duration(updateMetricsInterval) * time.Second)
+	ticker := time.NewTicker(updateMetricsInterval)
 	t := time.Now()
 
 	for {

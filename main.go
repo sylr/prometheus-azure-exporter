@@ -105,9 +105,11 @@ func main() {
 	log.Debugf("Options: %+v", Options)
 	log.Infof("Version: %s", Version)
 
+	// Configure metrics update interval
+	metrics.SetUpdateMetricsInterval(time.Duration(Options.UpdateInterval) * time.Second)
+
 	// Update metrics process
 	ctx := context.Background()
-	metrics.SetUpdateMetricsInterval(Options.UpdateInterval)
 	go metrics.UpdateMetrics(ctx)
 
 	// Prometheus http endpoint
