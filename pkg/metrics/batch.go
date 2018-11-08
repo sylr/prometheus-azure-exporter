@@ -116,6 +116,10 @@ func UpdateBatchMetrics(ctx context.Context) {
 	}
 
 	for _, account := range *batchAccounts {
+		contextLogger = contextLogger.WithFields(log.Fields{
+			"_id":     ctx.Value("id").(string),
+			"account": *account.Name,
+		})
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
 		sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
 
@@ -162,24 +166,32 @@ func UpdateBatchMetrics(ctx context.Context) {
 		} else {
 			for _, job := range jobs {
 				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, &account, &job)
+				displayName := *job.ID
+
+				// job.DisplayName can be nil but we don't want that
+				if job.DisplayName != nil {
+					displayName = *job.DisplayName
+				} else {
+					contextLogger.Warnf("Job `%s` has no display name, defaulting to job.ID", *job.ID)
+				}
 
 				if err != nil {
-					batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
-					batchJobsTasksRunning.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
-					batchJobsTasksCompleted.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
-					batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
-					batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName)
+					batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
+					batchJobsTasksRunning.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
+					batchJobsTasksCompleted.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
+					batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
+					batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
 
 					contextLogger.Error(err)
 					continue
 				}
 
 				// <!-- metrics
-				batchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Active))
-				batchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Running))
-				batchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Completed))
-				batchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Succeeded))
-				batchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *job.DisplayName).Set(float64(*taskCounts.Failed))
+				batchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Active))
+				batchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Running))
+				batchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Completed))
+				batchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Succeeded))
+				batchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
 				// metrics -->
 
 				contextLogger.WithFields(log.Fields{
@@ -188,7 +200,7 @@ func UpdateBatchMetrics(ctx context.Context) {
 					"rg":        accountProperties.ResourceGroup,
 					"account":   *account.Name,
 					"job_id":    *job.ID,
-					"job":       *job.DisplayName,
+					"job":       displayName,
 					"pool":      *job.PoolInfo.PoolID,
 					"active":    *taskCounts.Active,
 					"running":   *taskCounts.Running,
