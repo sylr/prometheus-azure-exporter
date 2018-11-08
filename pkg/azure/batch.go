@@ -34,13 +34,16 @@ var (
 		[]string{"subscription", "resource_group", "account"},
 	)
 
-	// AzureAPIBatchCallsDurationSeconds Duration of Azure Batch API calls in seconds
+	// AzureAPIBatchCallsDurationSeconds Percentiles of Azure Batch API calls durations in seconds over last 10 minutes
 	AzureAPIBatchCallsDurationSeconds = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Namespace: "azure_api",
-			Subsystem: "batch",
-			Name:      "calls_duration_seconds",
-			Help:      "Duration of Azure Batch API calls in seconds",
+			Namespace:  "azure_api",
+			Subsystem:  "batch",
+			Name:       "calls_duration_seconds",
+			Help:       "Percentiles of Azure Batch API calls durations in seconds over last 10 minutes",
+			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.95: 0.005, 0.99: 0.001},
+			BufCap:     50000,
+			MaxAge:     10 * time.Minute,
 		},
 		[]string{"subscription", "resource_group", "account"},
 	)
