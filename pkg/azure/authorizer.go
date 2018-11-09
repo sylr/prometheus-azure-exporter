@@ -16,17 +16,12 @@ func GetBatchAuthorizer() (autorest.Authorizer, error) {
 		return batchAuthorizer, nil
 	}
 
-	var a autorest.Authorizer
 	var err error
 
-	a, err = auth.NewAuthorizerFromEnvironment()
+	batchAuthorizer, err = auth.NewAuthorizerFromEnvironment()
 
-	if err == nil {
-		// cache
-		batchAuthorizer = a
-	} else {
-		// clear cache
-		batchAuthorizer = nil
+	if err != nil {
+		return nil, err
 	}
 
 	return batchAuthorizer, err
@@ -38,17 +33,12 @@ func GetBatchAuthorizerWithResource(resource string) (autorest.Authorizer, error
 		return batchAuthorizerWithResource, nil
 	}
 
-	var a autorest.Authorizer
 	var err error
 
-	a, err = auth.NewAuthorizerFromEnvironmentWithResource(resource)
+	batchAuthorizerWithResource, err = auth.NewAuthorizerFromEnvironmentWithResource(resource)
 
-	if err == nil {
-		// cache
-		batchAuthorizerWithResource = a
-	} else {
-		// clear cache
-		batchAuthorizerWithResource = nil
+	if err != nil {
+		return nil, err
 	}
 
 	return batchAuthorizerWithResource, err
