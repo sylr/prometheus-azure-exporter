@@ -14,8 +14,8 @@ type AzureClients struct {
 	subscriptionClients map[string]*subscription.SubscriptionsClient
 }
 
-// GetNewAzureClients makes new AzureClients object
-func GetNewAzureClients() *AzureClients {
+// NewAzureClients makes new AzureClients object
+func NewAzureClients() *AzureClients {
 	azc := &AzureClients{
 		batchAccountClients: make(map[string]*azurebatch.AccountClient),
 		batchPoolClients:    make(map[string]*azurebatch.PoolClient),
