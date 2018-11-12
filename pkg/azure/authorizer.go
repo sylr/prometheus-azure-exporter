@@ -1,14 +1,43 @@
 package azure
 
 import (
+	"os"
+
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
 var (
+	graphAuthorizer             autorest.Authorizer
 	batchAuthorizer             autorest.Authorizer
 	batchAuthorizerWithResource autorest.Authorizer
 )
+
+// GetGraphAuthorizer get graph authorizer
+func GetGraphAuthorizer() (autorest.Authorizer, error) {
+	if graphAuthorizer != nil {
+		return graphAuthorizer, nil
+	}
+
+	var err error
+
+	envName := os.Getenv("AZURE_ENVIRONMENT")
+
+	if len(envName) == 0 {
+		envName = azure.PublicCloud.Name
+	}
+
+	env, err := azure.EnvironmentFromName(envName)
+
+	graphAuthorizer, err = auth.NewAuthorizerFromEnvironmentWithResource(env.GraphEndpoint)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return graphAuthorizer, err
+}
 
 // GetBatchAuthorizer get batch authorizer
 func GetBatchAuthorizer() (autorest.Authorizer, error) {

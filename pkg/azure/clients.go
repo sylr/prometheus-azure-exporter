@@ -3,24 +3,29 @@ package azure
 import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 )
 
 // AzureClients Collection of Azure clients
 type AzureClients struct {
-	batchAccountClients map[string]*azurebatch.AccountClient
-	batchPoolClients    map[string]*azurebatch.PoolClient
-	batchJobClients     map[string]*batch.JobClient
-	subscriptionClients map[string]*subscription.SubscriptionsClient
+	batchAccountClients      map[string]*azurebatch.AccountClient
+	batchPoolClients         map[string]*azurebatch.PoolClient
+	batchJobClients          map[string]*batch.JobClient
+	subscriptionsClients     map[string]*subscription.SubscriptionsClient
+	applicationsClients      map[string]*graph.ApplicationsClient
+	servicePrincipalsClients map[string]*graph.ServicePrincipalsClient
 }
 
 // NewAzureClients makes new AzureClients object
 func NewAzureClients() *AzureClients {
 	azc := &AzureClients{
-		batchAccountClients: make(map[string]*azurebatch.AccountClient),
-		batchPoolClients:    make(map[string]*azurebatch.PoolClient),
-		batchJobClients:     make(map[string]*batch.JobClient),
-		subscriptionClients: make(map[string]*subscription.SubscriptionsClient),
+		batchAccountClients:      make(map[string]*azurebatch.AccountClient),
+		batchPoolClients:         make(map[string]*azurebatch.PoolClient),
+		batchJobClients:          make(map[string]*batch.JobClient),
+		subscriptionsClients:     make(map[string]*subscription.SubscriptionsClient),
+		applicationsClients:      make(map[string]*graph.ApplicationsClient),
+		servicePrincipalsClients: make(map[string]*graph.ServicePrincipalsClient),
 	}
 
 	return azc
@@ -28,8 +33,8 @@ func NewAzureClients() *AzureClients {
 
 // GetSubscriptionClient return subscription client
 func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscription.SubscriptionsClient, error) {
-	if _, ok := azc.subscriptionClients[subscriptionID]; ok {
-		return azc.subscriptionClients[subscriptionID], nil
+	if _, ok := azc.subscriptionsClients[subscriptionID]; ok {
+		return azc.subscriptionsClients[subscriptionID], nil
 	}
 
 	auth, err := GetBatchAuthorizer()
@@ -39,10 +44,10 @@ func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscrip
 	}
 
 	client := subscription.NewSubscriptionsClient()
-	azc.subscriptionClients[subscriptionID] = &client
-	azc.subscriptionClients[subscriptionID].Authorizer = auth
+	azc.subscriptionsClients[subscriptionID] = &client
+	azc.subscriptionsClients[subscriptionID].Authorizer = auth
 
-	return azc.subscriptionClients[subscriptionID], nil
+	return azc.subscriptionsClients[subscriptionID], nil
 }
 
 // GetBatchAccountClient return batch account client for specific subscription
@@ -119,4 +124,23 @@ func (azc *AzureClients) GetBatchJobClientWithResource(accountEndpoint string, r
 	azc.batchJobClients[accountEndpoint+resource].Authorizer = auth
 
 	return azc.batchJobClients[accountEndpoint+resource], nil
+}
+
+// GetApplicationsClient get applications client
+func (azc *AzureClients) GetApplicationsClient(tenantID string) (*graph.ApplicationsClient, error) {
+	if _, ok := azc.applicationsClients[tenantID]; ok {
+		return azc.applicationsClients[tenantID], nil
+	}
+
+	auth, err := GetGraphAuthorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := graph.NewApplicationsClient(tenantID)
+	azc.applicationsClients[tenantID] = &client
+	azc.applicationsClients[tenantID].Authorizer = auth
+
+	return azc.applicationsClients[tenantID], nil
 }
