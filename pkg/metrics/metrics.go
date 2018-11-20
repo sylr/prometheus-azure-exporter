@@ -34,7 +34,7 @@ func GetUpdateMetricsInterval() time.Duration {
 // UpdateMetrics main update metrics process
 // This process loops forever so it needs to be detached
 func UpdateMetrics(ctx context.Context) {
-	// Aligning udate metric processes with minute start
+	// Aligning update metric processes with minute start
 	sec := 60 - (time.Now().Unix() % 60)
 	nsec := time.Now().UnixNano() - (time.Now().Unix() * 1000000000)
 	log.WithField("_id", "000000000000").Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
