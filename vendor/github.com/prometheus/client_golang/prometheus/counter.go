@@ -40,7 +40,7 @@ type Counter interface {
 	// Add adds the given value to the counter. It panics if the value is <
 	// 0.
 	Add(float64)
-	// Set sets the Gauge to an arbitrary value.
+	// Set sets the Counter to an arbitrary value.
 	Set(float64)
 }
 
@@ -142,7 +142,7 @@ func NewCounterVec(opts CounterOpts, labelNames []string) *CounterVec {
 	return &CounterVec{
 		metricVec: newMetricVec(desc, func(lvs ...string) Metric {
 			if len(lvs) != len(desc.variableLabels) {
-				panic(errInconsistentCardinality)
+				panic(makeInconsistentCardinalityError(desc.fqName, desc.variableLabels, lvs))
 			}
 			result := &counter{desc: desc, labelPairs: makeLabelPairs(desc, lvs)}
 			result.init(result) // Init self-collection.

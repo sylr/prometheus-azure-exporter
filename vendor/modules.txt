@@ -44,7 +44,7 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 github.com/mitchellh/go-homedir
 # github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
 github.com/patrickmn/go-cache
-# github.com/prometheus/client_golang v0.8.0 => github.com/sylr/prometheus-client-golang v0.9.1-0.20181030154439-3347d9b10762
+# github.com/prometheus/client_golang v0.9.1 => github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79
 github.com/prometheus/client_golang/prometheus/promhttp
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal

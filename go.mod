@@ -12,7 +12,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
-	github.com/prometheus/client_golang v0.8.0
+	github.com/prometheus/client_golang v0.9.1
 	github.com/prometheus/common v0.0.0-20181020173914-7e9e6cabbd39 // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
@@ -27,5 +27,5 @@ require (
 
 replace (
 	github.com/Azure/azure-sdk-for-go => github.com/sylr/azure-sdk-for-go v21.3.1-0.20181030153248-182e361c7492+incompatible
-	github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v0.9.1-0.20181030154439-3347d9b10762
+	github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79
 )
