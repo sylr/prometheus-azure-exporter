@@ -57,7 +57,9 @@ github.com/sirupsen/logrus v1.1.1 h1:VzGj7lhU7KEB9e9gMpAV/v5XT2NVSvLJhJLCWbnkgXg
 github.com/sirupsen/logrus v1.1.1/go.mod h1:zrgwTnHtNr00buQ1vSptGe8m1f/BbgsPukg8qsT7A+A=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/sylr/azure-sdk-for-go v21.3.1-0.20181030153248-182e361c7492+incompatible h1:8mdwjO0g2eoS16ilWTQYlnkX8H8O3hZklFKPTWX+8hU=
 github.com/sylr/azure-sdk-for-go v21.3.1-0.20181030153248-182e361c7492+incompatible/go.mod h1:QvaG1FUPLzelbf4mt4iryLBBxcFTOuDTpnpWuxvwMTk=
+github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79 h1:Y2IEJJAHJscrwl7G1dPNYxParIgAoXsSpBEZ7kKNkck=
 github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79/go.mod h1:KceoA7YD7RzInM77Zlkz/ymqNoUvmkPy4r0vDwsOIE8=
 go.opencensus.io v0.17.0/go.mod h1:mp1VrMQxhlqqDpKvH4UcQUa4YwlzNmymAjPrDdfxNpI=
 go.opencensus.io v0.18.0 h1:Mk5rgZcggtbvtAun5aJzAtjKKN/t0R3jJPlWILlv938=
