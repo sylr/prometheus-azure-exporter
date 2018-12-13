@@ -12,6 +12,6 @@ env:
 
 script:
 - gofmt -d -e -l . && git diff --quiet
-- go mod tidy -v && git diff --quiet
+- go mod tidy -v && git diff --exit-code
 - go test -v ./...
 - go build
