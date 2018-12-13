@@ -10,8 +10,12 @@ go_import_path: github.com/sylr/prometheus-azure-exporter
 env:
 - GO111MODULE=on
 
+services:
+- docker
+
 script:
 - gofmt -d -e -l . && git diff --quiet
 - go mod tidy -v && git diff --exit-code
 - go test -v ./...
 - go build
+- docker build .
