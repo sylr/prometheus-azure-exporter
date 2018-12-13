@@ -13,10 +13,13 @@ env:
 services:
 - docker
 
+install:
+- true
+
 script:
-- gofmt -d -e -l . && git diff --exit-code
+- gofmt -d -e -l . && git diff --quiet
 - go mod tidy -v && git diff --exit-code
 - go mod vendor && git diff --exit-code
 - go test -v ./...
-- go build
+- go build -ldflags "-X main.Version=$(git describe --dirty --broken || git rev-parse --short HEAD)"
 - docker build .
