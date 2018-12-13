@@ -14,7 +14,7 @@ services:
 - docker
 
 script:
-- gofmt -d -e -l . && git diff --quiet
+- gofmt -d -e -l . && git diff --exit-code
 - go mod tidy -v && git diff --exit-code
 - go mod vendor && git diff --exit-code
 - go test -v ./...
