@@ -18,7 +18,7 @@ install:
 
 script:
 - gofmt -d -e -l . && git diff --quiet
-- go mod tidy -v && git diff --exit-code
+- go mod tidy -v && git diff
 - go mod vendor && git diff --exit-code
 - go test -v ./...
 - go build -ldflags "-X main.Version=$(git describe --dirty --broken || git rev-parse --short HEAD)"
