@@ -37,14 +37,14 @@ func UpdateMetrics(ctx context.Context) {
 	// Aligning update metric processes with minute start
 	sec := 60 - (time.Now().Unix() % 60)
 	nsec := time.Now().UnixNano() - (time.Now().Unix() * 1000000000)
-	log.WithField("_id", "000000000000").Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
+	log.WithField("_id", "00000000").Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
 	time.Sleep(time.Second*time.Duration(sec) - time.Duration(nsec))
 
 	ticker := time.NewTicker(updateMetricsInterval)
 	t := time.Now()
 
 	for {
-		log.WithField("_id", "000000000000").Debugf("Start metrics update: %s", t)
+		log.WithField("_id", "00000000").Debugf("Start metrics update: %s", t)
 
 		// Loop over all update functions metrics
 		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions {
@@ -74,5 +74,5 @@ func hashTime(t time.Time) string {
 	io.WriteString(h, t.String())
 	s := fmt.Sprintf("%x", h.Sum(nil))
 
-	return s[0:12]
+	return s[0:8]
 }
