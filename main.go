@@ -43,7 +43,7 @@ var (
 	// Options daemon options
 	Options = PrometheusAzureExporterOptions{}
 	// Version daemon version
-	Version = "v0.0.1"
+	Version = "v0.1.0"
 	// parser
 	parser = flags.NewParser(&Options, flags.Default)
 )
