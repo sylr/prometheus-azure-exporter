@@ -32,7 +32,7 @@ var (
 )
 
 var (
-	nameSanitationRegexp = regexp.MustCompile("[^a-zA-z0-9_./*-+]")
+	nameSanitationRegexp = regexp.MustCompile("[^a-zA-z0-9_./*-+ ]")
 )
 
 func init() {
