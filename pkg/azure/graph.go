@@ -33,16 +33,30 @@ var (
 		},
 		[]string{},
 	)
+
+	// AzureAPIGraphCallsDurationSecondsBuckets Histograms of Azure Graph API calls durations in seconds
+	AzureAPIGraphCallsDurationSecondsBuckets = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "azure_api",
+			Subsystem: "graph",
+			Name:      "calls_duration_seconds",
+			Help:      "Histograms of Azure Graph API calls durations in seconds",
+			Buckets:   []float64{0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 1.0},
+		},
+		[]string{"subscription", "resource_group", "account"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(AzureAPIGraphCallsTotal)
 	prometheus.MustRegister(AzureAPIGraphCallsFailedTotal)
+	prometheus.MustRegister(AzureAPIGraphCallsDurationSecondsBuckets)
 }
 
 // ObserveAzureGraphAPICall ...
 func ObserveAzureGraphAPICall(duration float64, labels ...string) {
 	AzureAPIGraphCallsTotal.WithLabelValues(labels...).Inc()
+	AzureAPIGraphCallsDurationSecondsBuckets.WithLabelValues(labels...).Observe(duration)
 }
 
 // ObserveAzureGraphAPICallFailed ...
