@@ -39,7 +39,7 @@ var (
 		prometheus.HistogramOpts{
 			Namespace: "azure_api",
 			Subsystem: "batch",
-			Name:      "calls_duration_seconds_hist",
+			Name:      "calls_duration_seconds",
 			Help:      "Histograms of Azure Batch API calls durations in seconds",
 			Buckets:   []float64{0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 1.0},
 		},
