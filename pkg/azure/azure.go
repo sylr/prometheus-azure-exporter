@@ -1,6 +1,10 @@
 package azure
 
 import (
+	"net/http"
+	"strconv"
+	"sync"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -38,12 +42,28 @@ var (
 		},
 		[]string{},
 	)
+
+	// AzureAPIReadRateLimitRemaining Gauge describing the current number of remaining read API calls
+	AzureAPIReadRateLimitRemaining = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure_api",
+			Subsystem: "",
+			Name:      "read_rate_limit_remaining",
+			Help:      "Gauge describing the current number of remaining read API calls allowed for the subscription",
+		},
+		[]string{"subscription"},
+	)
+)
+
+var (
+	azureAPIReadRateLimitRemainingMutex = sync.RWMutex{}
 )
 
 func init() {
 	prometheus.MustRegister(AzureAPICallsTotal)
 	prometheus.MustRegister(AzureAPICallsFailedTotal)
 	prometheus.MustRegister(AzureAPICallsDurationSecondsBuckets)
+	prometheus.MustRegister(AzureAPIReadRateLimitRemaining)
 }
 
 // ObserveAzureAPICall
@@ -55,4 +75,19 @@ func ObserveAzureAPICall(duration float64) {
 // ObserveAzureAPICallFailed
 func ObserveAzureAPICallFailed(duration float64) {
 	AzureAPICallsFailedTotal.WithLabelValues().Inc()
+}
+
+// SetReadRateLimitRemaining ...
+func SetReadRateLimitRemaining(subscription string, reponse *http.Response) {
+	remaining := reponse.Header.Get("x-ms-ratelimit-remaining-subscription-reads")
+
+	if len(remaining) > 0 {
+		f, err := strconv.ParseFloat(remaining, 64)
+
+		if err == nil {
+			azureAPIReadRateLimitRemainingMutex.Lock()
+			AzureAPIReadRateLimitRemaining.WithLabelValues(subscription).Set(f)
+			azureAPIReadRateLimitRemainingMutex.Unlock()
+		}
+	}
 }

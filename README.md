@@ -41,6 +41,7 @@ Azure resources
 |                         | azure_api_graph_calls_duration_seconds          |
 |                         | azure_api_graph_calls_duration_seconds_sum      |
 |                         | azure_api_graph_calls_duration_seconds_count    |
+|                         | azure_api_read_rate_limit_remaining             | subscription
 | Batch                   | azure_batch_pool_quota                          | subscription, resource_group, account
 |                         | azure_batch_dedicated_core_quota                | subscription, resource_group, account
 |                         | azure_batch_pool_dedicated_nodes                | subscription, resource_group, account, pool
