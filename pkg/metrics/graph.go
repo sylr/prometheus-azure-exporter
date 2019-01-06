@@ -53,8 +53,8 @@ func UpdateGraphMetrics(ctx context.Context) {
 	if err != nil {
 		contextLogger.Errorf("Unable to list applications: %s", err)
 
-		graphApplicationKeyExpire.DeleteLabelValues()
-		graphApplicationPasswordExpire.DeleteLabelValues()
+		graphApplicationKeyExpire.Reset()
+		graphApplicationPasswordExpire.Reset()
 
 		return
 	}
