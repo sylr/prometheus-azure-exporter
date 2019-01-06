@@ -2,7 +2,7 @@ module github.com/sylr/prometheus-azure-exporter
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.2.0 // indirect
-	github.com/Azure/azure-sdk-for-go v21.3.0+incompatible
+	github.com/Azure/azure-sdk-for-go v24.0.0+incompatible
 	github.com/Azure/go-autorest v11.2.2+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.0.2 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
@@ -25,7 +25,4 @@ require (
 	google.golang.org/genproto v0.0.0-20181016170114-94acd270e44e // indirect
 )
 
-replace (
-	github.com/Azure/azure-sdk-for-go => github.com/sylr/azure-sdk-for-go v21.3.1-0.20181030153248-182e361c7492+incompatible
-	github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79
-)
+replace github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79
