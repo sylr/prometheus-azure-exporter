@@ -34,20 +34,6 @@ var (
 		[]string{"subscription", "resource_group", "account"},
 	)
 
-	// AzureAPIBatchCallsDurationSeconds Percentiles of Azure Batch API calls durations in seconds over last 10 minutes
-	AzureAPIBatchCallsDurationSeconds = prometheus.NewSummaryVec(
-		prometheus.SummaryOpts{
-			Namespace:  "azure_api",
-			Subsystem:  "batch",
-			Name:       "calls_duration_seconds",
-			Help:       "Percentiles of Azure Batch API calls durations in seconds over last 10 minutes",
-			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.95: 0.005, 0.99: 0.001},
-			BufCap:     50000,
-			MaxAge:     10 * time.Minute,
-		},
-		[]string{"subscription", "resource_group", "account"},
-	)
-
 	// AzureAPIBatchCallsDurationSecondsBuckets Histograms of Azure Batch API calls durations in seconds
 	AzureAPIBatchCallsDurationSecondsBuckets = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -55,7 +41,7 @@ var (
 			Subsystem: "batch",
 			Name:      "calls_duration_seconds_hist",
 			Help:      "Histograms of Azure Batch API calls durations in seconds",
-			Buckets:   []float64{0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 1.0, 2.0},
+			Buckets:   []float64{0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 1.0},
 		},
 		[]string{"subscription", "resource_group", "account"},
 	)
@@ -64,14 +50,12 @@ var (
 func init() {
 	prometheus.MustRegister(AzureAPIBatchCallsTotal)
 	prometheus.MustRegister(AzureAPIBatchCallsFailedTotal)
-	prometheus.MustRegister(AzureAPIBatchCallsDurationSeconds)
 	prometheus.MustRegister(AzureAPIBatchCallsDurationSecondsBuckets)
 }
 
 // ObserveAzureBatchAPICall
 func ObserveAzureBatchAPICall(duration float64, labels ...string) {
 	AzureAPIBatchCallsTotal.WithLabelValues(labels...).Inc()
-	AzureAPIBatchCallsDurationSeconds.WithLabelValues(labels...).Observe(duration)
 	AzureAPIBatchCallsDurationSecondsBuckets.WithLabelValues(labels...).Observe(duration)
 }
 
