@@ -61,7 +61,7 @@ github.com/prometheus/procfs/xfs
 github.com/prometheus/procfs/internal/util
 # github.com/satori/go.uuid v1.2.0
 github.com/satori/go.uuid
-# github.com/sirupsen/logrus v1.2.0
+# github.com/sirupsen/logrus v1.3.0
 github.com/sirupsen/logrus
 # go.opencensus.io v0.18.0
 go.opencensus.io/plugin/ochttp
