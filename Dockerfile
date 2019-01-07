@@ -5,10 +5,8 @@ WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 
 RUN apk update && apk upgrade && apk add --no-cache git
 
-RUN uname -a
-RUN go version
-
-RUN go install -ldflags "-X main.Version=$(git describe --tags --dirty --broken || git rev-parse --short HEAD)"
+RUN uname -a && go version && git update-index --refresh && (git describe --tags --dirty --broken || git rev-parse --short HEAD)
+RUN git update-index --refresh && go install -ldflags "-X main.Version=$(git describe --tags --dirty --broken || git rev-parse --short HEAD)"
 
 # -----------------------------------------------------------------------------
 
