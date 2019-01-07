@@ -1,6 +1,7 @@
 prometheus-azure-exporter
 =========================
 
+[![Build Status](https://travis-ci.com/sylr/prometheus-azure-exporter.svg?branch=master)](https://travis-ci.com/sylr/prometheus-azure-exporter)
 [![Docker Repository on Quay](https://quay.io/repository/sylr/prometheus-azure-exporter/status "Docker Repository on Quay")](https://quay.io/repository/sylr/prometheus-azure-exporter)
 
 
