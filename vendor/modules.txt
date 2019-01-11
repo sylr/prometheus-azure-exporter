@@ -6,7 +6,7 @@ github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription
 github.com/Azure/azure-sdk-for-go/version
-# github.com/Azure/go-autorest v11.2.8+incompatible
+# github.com/Azure/go-autorest v11.3.0+incompatible
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 github.com/Azure/go-autorest/autorest/azure/auth
