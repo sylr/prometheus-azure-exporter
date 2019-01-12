@@ -4,21 +4,30 @@ import (
 	"sync"
 	"time"
 
-	gocache "github.com/patrickmn/go-cache"
+	cache "github.com/patrickmn/go-cache"
+)
+
+var (
+	// NoopCaching Use a Noop caching implementation
+	NoopCaching = false
 )
 
 var (
 	mutex  = sync.RWMutex{}
-	caches = make(map[time.Duration]*gocache.Cache)
+	caches = make(map[time.Duration]cache.Cacher)
 )
 
-// GetCache get a cache object
-func GetCache(duration time.Duration) *gocache.Cache {
+// GetCache get a caching object
+func GetCache(duration time.Duration) cache.Cacher {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	if _, ok := caches[duration]; !ok {
-		caches[duration] = gocache.New(duration, 2*time.Minute)
+		if NoopCaching {
+			caches[duration] = cache.NewNoopCacher(duration, 2*time.Minute)
+		} else {
+			caches[duration] = cache.NewCacher(duration, 2*time.Minute)
+		}
 	}
 
 	return caches[duration]

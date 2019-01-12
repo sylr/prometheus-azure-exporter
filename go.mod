@@ -21,4 +21,7 @@ require (
 	google.golang.org/genproto v0.0.0-20181016170114-94acd270e44e // indirect
 )
 
-replace github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v0.0.0-20190106175946-16e6956cdb08
+replace (
+	github.com/patrickmn/go-cache => github.com/sylr/go-cache v2.1.1-0.20190112150453-7f6fb256aaca+incompatible
+	github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v0.0.0-20190106175946-16e6956cdb08
+)
