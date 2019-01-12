@@ -26,6 +26,7 @@ type PrometheusAzureExporterOptions struct {
 	ListeningAddress string `short:"a"  long:"address"   description:"Listening address" env:"LISTENING_ADDRESS" default:"0.0.0.0"`
 	ListeningPort    uint   `short:"p"  long:"port"      description:"Listening port" env:"LISTENING_PORT" default:"9000"`
 	UpdateInterval   int    `short:"i"  long:"interval"  description:"Number of seconds between metrics updates" default:"60"`
+	NoCache          bool   `           long:"no-cache"  description:"Disable internal caching"`
 
 	// Env vars used for Azure Authent, see
 	// https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go#L86-L94
@@ -106,6 +107,11 @@ func main() {
 	// Loggin options
 	log.Debugf("Options: %+v", Options)
 	log.Infof("Version: %s", Version)
+
+	// Turn on Noop caching
+	if Options.NoCache {
+		tools.NoopCaching = true
+	}
 
 	// Configure metrics update interval
 	metrics.SetUpdateMetricsInterval(time.Duration(Options.UpdateInterval) * time.Second)

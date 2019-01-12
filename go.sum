@@ -74,6 +74,8 @@ github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/sylr/azure-sdk-for-go v21.3.1-0.20181030153248-182e361c7492+incompatible h1:8mdwjO0g2eoS16ilWTQYlnkX8H8O3hZklFKPTWX+8hU=
 github.com/sylr/azure-sdk-for-go v21.3.1-0.20181030153248-182e361c7492+incompatible/go.mod h1:QvaG1FUPLzelbf4mt4iryLBBxcFTOuDTpnpWuxvwMTk=
+github.com/sylr/go-cache v2.1.1-0.20190112150453-7f6fb256aaca+incompatible h1:BYJm04EObF5wxJUd0g1YLwIvfQu1MIwX5fiFt5xmjDY=
+github.com/sylr/go-cache v2.1.1-0.20190112150453-7f6fb256aaca+incompatible/go.mod h1:7XejAOZorpk1FSISJnaJhTggTVnJzeJXqplq4wid0cc=
 github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79 h1:Y2IEJJAHJscrwl7G1dPNYxParIgAoXsSpBEZ7kKNkck=
 github.com/sylr/prometheus-client-golang v0.0.0-20181120120753-001c90d6cc79/go.mod h1:KceoA7YD7RzInM77Zlkz/ymqNoUvmkPy4r0vDwsOIE8=
 github.com/sylr/prometheus-client-golang v0.0.0-20190106175946-16e6956cdb08 h1:gbgpec4w7MufpTjfaaBz/AaSQzv+ppfS658FpEwuVYY=
