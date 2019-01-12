@@ -53,13 +53,13 @@ func init() {
 	prometheus.MustRegister(AzureAPIBatchCallsDurationSecondsBuckets)
 }
 
-// ObserveAzureBatchAPICall
+// ObserveAzureBatchAPICall ...
 func ObserveAzureBatchAPICall(duration float64, labels ...string) {
 	AzureAPIBatchCallsTotal.WithLabelValues(labels...).Inc()
 	AzureAPIBatchCallsDurationSecondsBuckets.WithLabelValues(labels...).Observe(duration)
 }
 
-// ObserveAzureBatchAPICallFailed
+// ObserveAzureBatchAPICallFailed ...
 func ObserveAzureBatchAPICallFailed(duration float64, labels ...string) {
 	AzureAPIBatchCallsFailedTotal.WithLabelValues(labels...).Inc()
 }
