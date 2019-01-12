@@ -9,7 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/jessevdk/go-flags"
+	_ "net/http/pprof"
+
+	flags "github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/metrics"
