@@ -1,10 +1,15 @@
 package azure
 
 import (
+	"net/http"
+
+	log "github.com/sirupsen/logrus"
+
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/go-autorest/autorest"
 )
 
 // AzureClients Collection of Azure clients
@@ -46,6 +51,7 @@ func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscrip
 	client := subscription.NewSubscriptionsClient()
 	azc.subscriptionsClients[subscriptionID] = &client
 	azc.subscriptionsClients[subscriptionID].Authorizer = auth
+	azc.subscriptionsClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
 
 	return azc.subscriptionsClients[subscriptionID], nil
 }
@@ -65,6 +71,7 @@ func (azc *AzureClients) GetBatchAccountClient(subscriptionID string) (*azurebat
 	client := azurebatch.NewAccountClient(subscriptionID)
 	azc.batchAccountClients[subscriptionID] = &client
 	azc.batchAccountClients[subscriptionID].Authorizer = auth
+	azc.batchAccountClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
 
 	return azc.batchAccountClients[subscriptionID], nil
 }
@@ -84,6 +91,7 @@ func (azc *AzureClients) GetBatchPoolClient(subscriptionID string) (*azurebatch.
 	client := azurebatch.NewPoolClient(subscriptionID)
 	azc.batchPoolClients[subscriptionID] = &client
 	azc.batchPoolClients[subscriptionID].Authorizer = auth
+	azc.batchPoolClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
 
 	return azc.batchPoolClients[subscriptionID], nil
 }
@@ -103,6 +111,7 @@ func (azc *AzureClients) GetBatchJobClient(accountEndpoint string) (*batch.JobCl
 	client := batch.NewJobClientWithBaseURI("https://" + accountEndpoint)
 	azc.batchJobClients[accountEndpoint] = &client
 	azc.batchJobClients[accountEndpoint].Authorizer = auth
+	//azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
 
 	return azc.batchJobClients[accountEndpoint], nil
 }
@@ -122,6 +131,7 @@ func (azc *AzureClients) GetBatchJobClientWithResource(accountEndpoint string, r
 	client := batch.NewJobClientWithBaseURI("https://" + accountEndpoint)
 	azc.batchJobClients[accountEndpoint+resource] = &client
 	azc.batchJobClients[accountEndpoint+resource].Authorizer = auth
+	//azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
 
 	return azc.batchJobClients[accountEndpoint+resource], nil
 }
@@ -141,6 +151,27 @@ func (azc *AzureClients) GetApplicationsClient(tenantID string) (*graph.Applicat
 	client := graph.NewApplicationsClient(tenantID)
 	azc.applicationsClients[tenantID] = &client
 	azc.applicationsClients[tenantID].Authorizer = auth
+	//azc.applicationsClients[tenantID].ResponseInspector = respondInspectDebug()
 
 	return azc.applicationsClients[tenantID], nil
+}
+
+func respondInspect(subscription string) autorest.RespondDecorator {
+	return func(r autorest.Responder) autorest.Responder {
+		return autorest.ResponderFunc(func(resp *http.Response) error {
+			SetReadRateLimitRemaining(subscription, resp)
+			return r.Respond(resp)
+		})
+	}
+}
+
+func respondInspectDebug() autorest.RespondDecorator {
+	return func(r autorest.Responder) autorest.Responder {
+		return autorest.ResponderFunc(func(resp *http.Response) error {
+			for key, val := range resp.Header {
+				log.Debugf("HEADER %v: %v", key, val)
+			}
+			return r.Respond(resp)
+		})
+	}
 }
