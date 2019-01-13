@@ -1,11 +1,16 @@
 # contrib.go.opencensus.io/exporter/ocagent v0.2.0
 contrib.go.opencensus.io/exporter/ocagent
+# github.com/Azure/azure-pipeline-go v0.1.8
+github.com/Azure/azure-pipeline-go/pipeline
 # github.com/Azure/azure-sdk-for-go v24.0.0+incompatible
 github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription
+github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage
 github.com/Azure/azure-sdk-for-go/version
+# github.com/Azure/azure-storage-blob-go v0.0.0-20190104215108-45d0c5e3638e
+github.com/Azure/azure-storage-blob-go/azblob
 # github.com/Azure/go-autorest v11.3.0+incompatible
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
