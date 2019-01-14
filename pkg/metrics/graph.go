@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"regexp"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -39,12 +40,15 @@ func init() {
 	prometheus.MustRegister(graphApplicationKeyExpire)
 	prometheus.MustRegister(graphApplicationPasswordExpire)
 
-	RegisterUpdateMetricsFunctions("UpdateGraphMetrics", UpdateGraphMetrics)
+	RegisterUpdateMetricsFunctionsWithInterval("UpdateGraphMetrics", UpdateGraphMetrics, 60*time.Second)
 }
 
 // UpdateGraphMetrics updates graph metrics
 func UpdateGraphMetrics(ctx context.Context) {
-	contextLogger := log.WithFields(log.Fields{"_id": ctx.Value("id").(string)})
+	contextLogger := log.WithFields(log.Fields{
+		"_id":       ctx.Value("id").(string),
+		"_function": "UpdateGraphMetrics",
+	})
 	azureClients := azure.NewAzureClients()
 
 	// <!-- APPLICATIONS -------------------------------------------------------

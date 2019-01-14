@@ -5,20 +5,43 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 var (
+	mutex                  = sync.RWMutex{}
 	updateMetricsInterval  = 30 * time.Second
-	updateMetricsFunctions = make(map[string]func(context.Context))
+	updateMetricsFunctions = make(map[time.Duration]map[string]func(context.Context))
 )
+
+// initUpdateMetricsFunctionsMap makes sure the map is initialized
+func initUpdateMetricsFunctionsMap(interval time.Duration) {
+	if updateMetricsFunctions[interval] == nil {
+		updateMetricsFunctions[interval] = make(map[string]func(context.Context))
+	}
+}
 
 // RegisterUpdateMetricsFunctions allows you to register a function
 // that will update prometheus metrics
 func RegisterUpdateMetricsFunctions(name string, f func(context.Context)) {
-	updateMetricsFunctions[name] = f
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	initUpdateMetricsFunctionsMap(updateMetricsInterval)
+	updateMetricsFunctions[updateMetricsInterval][name] = f
+}
+
+// RegisterUpdateMetricsFunctionsWithInterval allows you to register a function
+// that will update prometheus metrics every interval
+func RegisterUpdateMetricsFunctionsWithInterval(name string, f func(context.Context), interval time.Duration) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	initUpdateMetricsFunctionsMap(interval)
+	updateMetricsFunctions[interval][name] = f
 }
 
 // SetUpdateMetricsInterval sets interval
@@ -34,34 +57,58 @@ func GetUpdateMetricsInterval() time.Duration {
 // UpdateMetrics main update metrics process
 // This process loops forever so it needs to be detached
 func UpdateMetrics(ctx context.Context) {
+	wg := sync.WaitGroup{}
+
+	for interval, _ := range updateMetricsFunctions {
+		go updateMetricsWithInterval(ctx, interval)
+		wg.Add(1)
+	}
+
+	wg.Wait()
+}
+
+func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
+	// logger
+	processLogger := log.WithFields(log.Fields{
+		"_id":       "00000000",
+		"_interval": interval,
+	})
+
+	processLogger.Infof("Start update metrics process with interval: %v", interval)
+
 	// Aligning update metric processes with minute start
 	sec := 60 - (time.Now().Unix() % 60)
-	nsec := time.Now().UnixNano() - (time.Now().Unix() * 1000000000)
-	log.WithField("_id", "00000000").Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
+	// 1000000000
+	nsec := time.Now().UnixNano() - (time.Now().Unix() * int64(time.Second))
+	processLogger.Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
 	time.Sleep(time.Second*time.Duration(sec) - time.Duration(nsec))
 
-	ticker := time.NewTicker(updateMetricsInterval)
+	ticker := time.NewTicker(interval)
 	t := time.Now()
 
 	for {
-		log.WithField("_id", "00000000").Debugf("Start metrics update: %s", t)
-
-		// Loop over all update functions metrics
-		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions {
+		// Loop over all update metrics functions
+		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions[interval] {
 			// We detach the update process so if it takes more than the refresh
 			// time it does not get blocked
 			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context), t time.Time) {
-				id := hashTime(t)
-				fields := log.Fields{
-					"_id":      id,
-					"function": updateMetricsFuncName,
-				}
+				id := processHash(t, updateMetricsFuncName)
+				functionLogger := processLogger.WithFields(log.Fields{
+					"_id":       id,
+					"_interval": interval,
+					"_function": updateMetricsFuncName,
+				})
 
 				ctx = context.WithValue(ctx, "id", id)
 
-				log.WithFields(fields).Debug("Start update metrics function")
+				functionLogger.Infof("Start update metrics function")
+
+				// Run update metrics function
+				t0 := time.Now()
 				updateMetricsFunc(ctx)
-				log.WithFields(fields).Debug("End update metrics function")
+				t1 := time.Since(t0)
+
+				functionLogger.Infof("End update metrics function in %v", t1)
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
 		}
 
@@ -69,9 +116,9 @@ func UpdateMetrics(ctx context.Context) {
 	}
 }
 
-func hashTime(t time.Time) string {
+func processHash(t time.Time, salt string) string {
 	h := md5.New()
-	io.WriteString(h, t.String())
+	io.WriteString(h, salt+":"+t.String())
 	s := fmt.Sprintf("%x", h.Sum(nil))
 
 	return s[0:8]

@@ -10,6 +10,8 @@ func SortLogKeys(keys []string) {
 		"time",
 		"level",
 		"_id",
+		"_interval",
+		"_function",
 		"subscription",
 		"rg",
 		"resource_group",
