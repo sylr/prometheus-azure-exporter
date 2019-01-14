@@ -8,7 +8,21 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
+)
+
+var (
+	updateMetricsFunctionDurationHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "azure_exporter",
+			Subsystem: "update_metrics_function",
+			Name:      "duration_seconds",
+			Help:      "Duration of update metrics functions",
+			Buckets:   []float64{1, 2, 3, 4, 5, 15, 30, 60, 120, 180, 300, 600},
+		},
+		[]string{"function"},
+	)
 )
 
 var (
@@ -16,6 +30,10 @@ var (
 	updateMetricsInterval  = 30 * time.Second
 	updateMetricsFunctions = make(map[time.Duration]map[string]func(context.Context))
 )
+
+func init() {
+	prometheus.MustRegister(updateMetricsFunctionDurationHistogram)
+}
 
 // initUpdateMetricsFunctionsMap makes sure the map is initialized
 func initUpdateMetricsFunctionsMap(interval time.Duration) {
@@ -107,6 +125,9 @@ func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
 				t0 := time.Now()
 				updateMetricsFunc(ctx)
 				t1 := time.Since(t0)
+
+				// metrics
+				updateMetricsFunctionDurationHistogram.WithLabelValues(updateMetricsFuncName).Observe(t1.Seconds())
 
 				functionLogger.Infof("End update metrics function in %v", t1)
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
