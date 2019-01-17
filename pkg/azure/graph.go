@@ -76,7 +76,7 @@ func ListApplications(ctx context.Context, clients *AzureClients) (*[]graph.Appl
 
 	if cApplications, ok := c.Get(cacheKey); ok {
 		if apps, ok := cApplications.(*[]graph.Application); ok {
-			contextLogger.Debugf("Got *[]graph.Application from cache (len: %d, cap: %d)", len(*apps), cap(*apps))
+			//contextLogger.Debugf("Got *[]graph.Application from cache (len: %d, cap: %d)", len(*apps), cap(*apps))
 			return apps, nil
 		} else {
 			contextLogger.Errorf("Failed to cast object from cache back to *[]graph.Application")

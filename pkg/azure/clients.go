@@ -3,34 +3,40 @@ package azure
 import (
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/Azure/go-autorest/autorest"
+	log "github.com/sirupsen/logrus"
 )
 
 // AzureClients Collection of Azure clients
 type AzureClients struct {
-	batchAccountClients      map[string]*azurebatch.AccountClient
-	batchPoolClients         map[string]*azurebatch.PoolClient
-	batchJobClients          map[string]*batch.JobClient
-	subscriptionsClients     map[string]*subscription.SubscriptionsClient
-	applicationsClients      map[string]*graph.ApplicationsClient
-	servicePrincipalsClients map[string]*graph.ServicePrincipalsClient
+	batchAccountClients         map[string]*azurebatch.AccountClient
+	batchPoolClients            map[string]*azurebatch.PoolClient
+	batchJobClients             map[string]*batch.JobClient
+	subscriptionsClients        map[string]*subscription.SubscriptionsClient
+	applicationsClients         map[string]*graph.ApplicationsClient
+	servicePrincipalsClients    map[string]*graph.ServicePrincipalsClient
+	storageAccountsClients      map[string]*storage.AccountsClient
+	storageAccountUsagesClients map[string]*storage.UsagesClient
+	blobContainersClients       map[string]*storage.BlobContainersClient
 }
 
 // NewAzureClients makes new AzureClients object
 func NewAzureClients() *AzureClients {
 	azc := &AzureClients{
-		batchAccountClients:      make(map[string]*azurebatch.AccountClient),
-		batchPoolClients:         make(map[string]*azurebatch.PoolClient),
-		batchJobClients:          make(map[string]*batch.JobClient),
-		subscriptionsClients:     make(map[string]*subscription.SubscriptionsClient),
-		applicationsClients:      make(map[string]*graph.ApplicationsClient),
-		servicePrincipalsClients: make(map[string]*graph.ServicePrincipalsClient),
+		batchAccountClients:         make(map[string]*azurebatch.AccountClient),
+		batchPoolClients:            make(map[string]*azurebatch.PoolClient),
+		batchJobClients:             make(map[string]*batch.JobClient),
+		subscriptionsClients:        make(map[string]*subscription.SubscriptionsClient),
+		applicationsClients:         make(map[string]*graph.ApplicationsClient),
+		servicePrincipalsClients:    make(map[string]*graph.ServicePrincipalsClient),
+		storageAccountsClients:      make(map[string]*storage.AccountsClient),
+		storageAccountUsagesClients: make(map[string]*storage.UsagesClient),
+		blobContainersClients:       make(map[string]*storage.BlobContainersClient),
 	}
 
 	return azc
@@ -155,6 +161,108 @@ func (azc *AzureClients) GetApplicationsClient(tenantID string) (*graph.Applicat
 
 	return azc.applicationsClients[tenantID], nil
 }
+
+// GetStorageAccountsClient get storage account client
+func (azc *AzureClients) GetStorageAccountsClient(subscriptionID string) (*storage.AccountsClient, error) {
+	if _, ok := azc.storageAccountsClients[subscriptionID]; ok {
+		return azc.storageAccountsClients[subscriptionID], nil
+	}
+
+	auth, err := GetStorageAuthorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := storage.NewAccountsClient(subscriptionID)
+	azc.storageAccountsClients[subscriptionID] = &client
+	azc.storageAccountsClients[subscriptionID].Authorizer = auth
+	azc.storageAccountsClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
+
+	return azc.storageAccountsClients[subscriptionID], nil
+}
+
+// GetStorageAccountsClientWithResource get storage account client
+func (azc *AzureClients) GetStorageAccountsClientWithResource(subscriptionID string, accountEndpoint string, resource string) (*storage.AccountsClient, error) {
+	if _, ok := azc.storageAccountsClients[accountEndpoint+resource]; ok {
+		return azc.storageAccountsClients[accountEndpoint+resource], nil
+	}
+
+	auth, err := GetStorageAuthorizerWithResource(resource)
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := storage.NewAccountsClientWithBaseURI(accountEndpoint, subscriptionID)
+	azc.storageAccountsClients[accountEndpoint+resource] = &client
+	azc.storageAccountsClients[accountEndpoint+resource].Authorizer = auth
+	azc.storageAccountsClients[accountEndpoint+resource].ResponseInspector = respondInspect(subscriptionID)
+
+	return azc.storageAccountsClients[accountEndpoint+resource], nil
+}
+
+// GetStorageAccountUsagesClient get storage account client
+func (azc *AzureClients) GetStorageAccountUsagesClient(subscriptionID string) (*storage.UsagesClient, error) {
+	if _, ok := azc.storageAccountUsagesClients[subscriptionID]; ok {
+		return azc.storageAccountUsagesClients[subscriptionID], nil
+	}
+
+	auth, err := GetStorageAuthorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := storage.NewUsagesClient(subscriptionID)
+	azc.storageAccountUsagesClients[subscriptionID] = &client
+	azc.storageAccountUsagesClients[subscriptionID].Authorizer = auth
+	azc.storageAccountUsagesClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
+
+	return azc.storageAccountUsagesClients[subscriptionID], nil
+}
+
+// GetBlobContainersClient get storage account client
+func (azc *AzureClients) GetBlobContainersClient(subscriptionID string) (*storage.BlobContainersClient, error) {
+	if _, ok := azc.blobContainersClients[subscriptionID]; ok {
+		return azc.blobContainersClients[subscriptionID], nil
+	}
+
+	auth, err := GetStorageAuthorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := storage.NewBlobContainersClient(subscriptionID)
+	azc.blobContainersClients[subscriptionID] = &client
+	azc.blobContainersClients[subscriptionID].Authorizer = auth
+	azc.blobContainersClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
+
+	return azc.blobContainersClients[subscriptionID], nil
+}
+
+// GetBlobContainersClientWithResource get storage account client
+func (azc *AzureClients) GetBlobContainersClientWithResource(subscriptionID string, accountEndpoint string, resource string) (*storage.BlobContainersClient, error) {
+	if _, ok := azc.blobContainersClients[accountEndpoint+resource]; ok {
+		return azc.blobContainersClients[accountEndpoint+resource], nil
+	}
+
+	auth, err := GetStorageAuthorizerWithResource(resource)
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := storage.NewBlobContainersClientWithBaseURI(accountEndpoint, subscriptionID)
+	azc.blobContainersClients[accountEndpoint+resource] = &client
+	azc.blobContainersClients[accountEndpoint+resource].Authorizer = auth
+	azc.blobContainersClients[accountEndpoint+resource].ResponseInspector = respondInspect(subscriptionID)
+
+	return azc.blobContainersClients[accountEndpoint+resource], nil
+}
+
+// ----------------------------------------------------------------------------
 
 func respondInspect(subscription string) autorest.RespondDecorator {
 	return func(r autorest.Responder) autorest.Responder {

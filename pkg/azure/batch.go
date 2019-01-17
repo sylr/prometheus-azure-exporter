@@ -75,7 +75,7 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 
 	if caccounts, ok := c.Get(subscriptionID + "-accounts"); ok {
 		if accounts, ok := caccounts.(*[]azurebatch.Account); ok {
-			contextLogger.Debugf("Got []azurebatch.Account from cache")
+			//contextLogger.Debugf("Got []azurebatch.Account from cache")
 			return accounts, nil
 		} else {
 			contextLogger.Errorf("Failed to cast object from cache back to []azurebatch.Account")
@@ -122,7 +122,7 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 
 	if cpools, ok := c.Get(*account.Name + "-pools"); ok {
 		if pools, ok := cpools.([]azurebatch.Pool); ok {
-			contextLogger.Debugf("Got []azurebatch.Pool from cache")
+			//contextLogger.Debugf("Got []azurebatch.Pool from cache")
 			return pools, nil
 		} else {
 			contextLogger.Errorf("Failed to cast object from cache back to []azurebatch.Pool")
@@ -172,7 +172,7 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 
 	if cjobs, ok := c.Get(*account.Name + "-jobs"); ok {
 		if jobs, ok := cjobs.([]batch.CloudJob); ok {
-			contextLogger.Debugf("Got []batch.CloudJob from cache")
+			//contextLogger.Debugf("Got []batch.CloudJob from cache")
 			return jobs, nil
 		} else {
 			contextLogger.Errorf("Failed to cast object from cache back to []batch.CloudJob")

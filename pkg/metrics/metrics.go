@@ -19,7 +19,7 @@ var (
 			Subsystem: "update_metrics_function",
 			Name:      "duration_seconds",
 			Help:      "Duration of update metrics functions",
-			Buckets:   []float64{1, 2, 3, 4, 5, 15, 30, 60, 120, 180, 300, 600},
+			Buckets:   []float64{1, 5, 10, 30, 60, 300, 600, 1800, 3600},
 		},
 		[]string{"function"},
 	)
@@ -96,7 +96,6 @@ func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
 
 	// Aligning update metric processes with minute start
 	sec := 60 - (time.Now().Unix() % 60)
-	// 1000000000
 	nsec := time.Now().UnixNano() - (time.Now().Unix() * int64(time.Second))
 	processLogger.Debugf("Waiting %d seconds before starting to update metrics (ns: %d)", sec, nsec)
 	time.Sleep(time.Second*time.Duration(sec) - time.Duration(nsec))

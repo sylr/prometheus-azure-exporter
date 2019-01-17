@@ -9,9 +9,11 @@ import (
 )
 
 var (
-	graphAuthorizer             autorest.Authorizer
-	batchAuthorizer             autorest.Authorizer
-	batchAuthorizerWithResource autorest.Authorizer
+	graphAuthorizer               autorest.Authorizer
+	batchAuthorizer               autorest.Authorizer
+	batchAuthorizerWithResource   autorest.Authorizer
+	storageAuthorizer             autorest.Authorizer
+	storageAuthorizerWithResource autorest.Authorizer
 )
 
 // GetGraphAuthorizer get graph authorizer
@@ -71,4 +73,38 @@ func GetBatchAuthorizerWithResource(resource string) (autorest.Authorizer, error
 	}
 
 	return batchAuthorizerWithResource, err
+}
+
+// GetStorageAuthorizer get storage authorizer
+func GetStorageAuthorizer() (autorest.Authorizer, error) {
+	if storageAuthorizer != nil {
+		return storageAuthorizer, nil
+	}
+
+	var err error
+
+	storageAuthorizer, err = auth.NewAuthorizerFromEnvironment()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return storageAuthorizer, err
+}
+
+// GetStorageAuthorizerWithResource get storage authorizer with resource
+func GetStorageAuthorizerWithResource(resource string) (autorest.Authorizer, error) {
+	if storageAuthorizerWithResource != nil {
+		return storageAuthorizerWithResource, nil
+	}
+
+	var err error
+
+	storageAuthorizerWithResource, err = auth.NewAuthorizerFromEnvironmentWithResource(resource)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return storageAuthorizerWithResource, err
 }
