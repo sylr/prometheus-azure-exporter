@@ -10,6 +10,8 @@ github.com/Azure/azure-storage-blob-go v0.0.0-20190104215108-45d0c5e3638e h1:/xc
 github.com/Azure/azure-storage-blob-go v0.0.0-20190104215108-45d0c5e3638e/go.mod h1:oGfmITT1V6x//CswqY2gtAHND+xIP64/qL7a5QJix0Y=
 github.com/Azure/go-autorest v11.3.0+incompatible h1:oPIb2R8fwU91NsavCEqDYBLTUTcxckx5kIRHY7zBi/E=
 github.com/Azure/go-autorest v11.3.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
+github.com/Azure/go-autorest v11.3.1+incompatible h1:Pzn7+3iKqV1UAbwKarPKc4asZMJe9fQvs0csgYl6p4A=
+github.com/Azure/go-autorest v11.3.1+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/census-instrumentation/opencensus-proto v0.0.2-0.20180913191712-f303ae3f8d6a/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
