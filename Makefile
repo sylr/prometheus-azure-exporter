@@ -8,6 +8,6 @@ install:
 
 vendor:
 	GO111MODULE=on go mod vendor
-	git add vendor && git commit -s -m "dependencies: update vendored libs"
+	git add vendor && git diff --cached --exit-code > /dev/null || git commit -s -m "Update vendored libs"
 
 .PHONY: build install vendor
