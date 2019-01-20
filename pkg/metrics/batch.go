@@ -107,8 +107,8 @@ func init() {
 // UpdateBatchMetrics updates batch metrics
 func UpdateBatchMetrics(ctx context.Context) {
 	contextLogger := log.WithFields(log.Fields{
-		"_id":       ctx.Value("id").(string),
-		"_function": "UpdateBatchMetrics",
+		"_id":   ctx.Value("id").(string),
+		"_func": "UpdateBatchMetrics",
 	})
 	azureClients := azure.NewAzureClients()
 	batchAccounts, err := azure.ListSubscriptionBatchAccounts(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))

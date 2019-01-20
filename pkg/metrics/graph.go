@@ -46,8 +46,8 @@ func init() {
 // UpdateGraphMetrics updates graph metrics
 func UpdateGraphMetrics(ctx context.Context) {
 	contextLogger := log.WithFields(log.Fields{
-		"_id":       ctx.Value("id").(string),
-		"_function": "UpdateGraphMetrics",
+		"_id":   ctx.Value("id").(string),
+		"_func": "UpdateGraphMetrics",
 	})
 	azureClients := azure.NewAzureClients()
 

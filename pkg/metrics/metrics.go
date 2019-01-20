@@ -113,7 +113,7 @@ func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
 				functionLogger := processLogger.WithFields(log.Fields{
 					"_id":       id,
 					"_interval": interval,
-					"_function": updateMetricsFuncName,
+					"_func":     updateMetricsFuncName,
 				})
 
 				ctx = context.WithValue(ctx, "id", id)

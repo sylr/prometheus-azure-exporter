@@ -51,8 +51,8 @@ func init() {
 // UpdateStorageMetrics updates storage metrics.
 func UpdateStorageMetrics(ctx context.Context) {
 	contextLogger := log.WithFields(log.Fields{
-		"_id":       ctx.Value("id").(string),
-		"_function": "UpdateStorageMetrics",
+		"_id":   ctx.Value("id").(string),
+		"_func": "UpdateStorageMetrics",
 	})
 
 	azureClients := azure.NewAzureClients()

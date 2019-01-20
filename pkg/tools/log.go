@@ -11,7 +11,7 @@ func SortLogKeys(keys []string) {
 		"level",
 		"_id",
 		"_interval",
-		"_function",
+		"_func",
 		"subscription",
 		"rg",
 		"resource_group",
