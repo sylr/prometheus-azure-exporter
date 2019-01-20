@@ -3,9 +3,11 @@ package azure
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
@@ -223,4 +225,45 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account 
 	c.SetDefault(cacheKey, &vals)
 
 	return &vals, nil
+}
+
+// StorageAccountMetrics ...
+type StorageAccountMetrics struct {
+	ContainerBlobSizeHistogram *prometheus.HistogramVec
+	mutex                      sync.RWMutex
+}
+
+// Lock is here to make sure several Walkers do not update ContainerBlobSizeHistogram
+// at the same time.
+func (s *StorageAccountMetrics) Lock() {
+	s.mutex.Lock()
+}
+
+// Unlock releases the lock.
+func (s *StorageAccountMetrics) Unlock() {
+	s.mutex.Unlock()
+}
+
+// Reset resets the histogram data.
+func (s *StorageAccountMetrics) Reset() {
+	s.Lock()
+	s.ContainerBlobSizeHistogram.Reset()
+	s.Unlock()
+}
+
+// DeleteLabelValues deletes histogram's data associated with given labels.
+func (s *StorageAccountMetrics) DeleteLabelValues(labels ...string) {
+	s.Lock()
+	s.ContainerBlobSizeHistogram.DeleteLabelValues(labels...)
+	s.Unlock()
+}
+
+// WalkBlob is called over each blobs listed by the function walking the
+// storage account container.
+func (s *StorageAccountMetrics) WalkBlob(account *storage.Account, container *storage.ListContainerItem, blob *azblob.BlobItem) {
+	details, _ := ParseResourceID(*account.ID)
+
+	s.ContainerBlobSizeHistogram.
+		WithLabelValues(details.SubscriptionID, details.ResourceGroup, *account.Name, *container.Name).
+		Observe(float64(*blob.Properties.ContentLength))
 }

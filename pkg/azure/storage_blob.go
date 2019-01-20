@@ -14,9 +14,9 @@ var (
 	blobFormatString = `https://%s.blob.core.windows.net`
 )
 
-// ContainerWalker in an interface that is to be implemented by struct you want
+// StorageAccountContainerWalker in an interface that is to be implemented by struct you want
 // to pass to Walking functions like WalkStorageAccount().
-type ContainerWalker interface {
+type StorageAccountContainerWalker interface {
 	// Lock prevents concurrent process to WalkBlob().
 	Lock()
 	// Unlock releases the lock.
@@ -25,8 +25,8 @@ type ContainerWalker interface {
 	WalkBlob(*storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
 }
 
-// WalkStorageAccount applies a function on all storage account containter blobs.
-func WalkStorageAccount(ctx context.Context, clients *AzureClients, account *storage.Account, container *storage.ListContainerItem, walker ContainerWalker) error {
+// WalkStorageAccountContainer applies a function on all storage account containter blobs.
+func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, account *storage.Account, container *storage.ListContainerItem, walker StorageAccountContainerWalker) error {
 	token, err := GetStorageToken(ctx)
 
 	if err != nil {
