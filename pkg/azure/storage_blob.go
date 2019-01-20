@@ -27,21 +27,18 @@ type ContainerWalker interface {
 
 // WalkStorageAccount applies a function on all storage account containter blobs.
 func WalkStorageAccount(ctx context.Context, clients *AzureClients, account *storage.Account, container *storage.ListContainerItem, walker ContainerWalker) error {
-	keys, err := ListStorageAccountKeys(ctx, clients, account)
+	token, err := GetStorageToken(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	key := (*keys)[0]
-	sharedKey, err := azblob.NewSharedKeyCredential(*account.Name, *key.Value)
-
-	if err != nil {
-		return err
-	}
+	// ADAL credentials
+	accessToken := token.Token().AccessToken
+	credential := azblob.NewTokenCredential(accessToken, nil)
 
 	// Preparing browsing container.
-	pipeline := azblob.NewPipeline(sharedKey, azblob.PipelineOptions{})
+	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 	url, _ := url.Parse(fmt.Sprintf(blobFormatString, *account.Name))
 	serviceURL := azblob.NewServiceURL(*url, pipeline)
 	containerURL := serviceURL.NewContainerURL(*container.Name)

@@ -99,7 +99,7 @@ func UpdateStorageMetrics(ctx context.Context) {
 				t1 := time.Since(t0)
 
 				if err != nil {
-					accountLogger.Fatalf("%v", err)
+					accountLogger.Error(err)
 				}
 
 				accountLogger.Debugf("Done updating container: %s (%v)", *container.Name, t1)
