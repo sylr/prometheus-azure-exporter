@@ -8,7 +8,10 @@ go:
 go_import_path: github.com/sylr/prometheus-azure-exporter
 
 env:
-- GO111MODULE=on
+  global:
+  - GO111MODULE=on
+  - GITHUB_ENCRYPTED_SSH_KEY=.travis/github_deploy_key.enc
+  - GITHUB_SSH_KEY=.travis/github_deploy_key
 
 services:
 - docker
@@ -16,10 +19,19 @@ services:
 install:
 - true
 
+before_install:
+- openssl aes-256-cbc -K $encrypted_276fe16c3c2d_key -iv $encrypted_276fe16c3c2d_iv -in $GITHUB_ENCRYPTED_SSH_KEY -out $GITHUB_SSH_KEY -d && chmod 0600 .travis/github_deploy_key
+- eval "$(ssh-agent -s)"
+- ssh-add $GITHUB_SSH_KEY
+
 script:
+- contrib/dependabot-travis.sh git-checkout
+- contrib/dependabot-travis.sh vendor
 - gofmt -d -e -l . && git diff --quiet
-#- go mod tidy -v && git diff
 - go mod vendor && git diff --exit-code
 - go test -v ./...
 - go build -ldflags "-X main.Version=$(git describe --tags --dirty --broken || git rev-parse --short HEAD)"
 - docker build .
+
+after_success:
+- contrib/dependabot-travis.sh push-back
