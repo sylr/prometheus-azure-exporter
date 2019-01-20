@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/prometheus/client_golang/prometheus"
@@ -28,7 +30,7 @@ var (
 			Name:      "calls_total",
 			Help:      "Total number of calls to the Azure API",
 		},
-		[]string{},
+		[]string{"subscription", "resource_group", "account"},
 	)
 
 	// AzureAPIStorageCallsFailedTotal Total number of failed Azure Storage API calls
@@ -39,7 +41,7 @@ var (
 			Name:      "calls_failed_total",
 			Help:      "Total number of failed calls to the Azure API",
 		},
-		[]string{},
+		[]string{"subscription", "resource_group", "account"},
 	)
 
 	// AzureAPIStorageCallsDurationSecondsBuckets Histograms of Azure Storage API calls durations in seconds
@@ -51,7 +53,7 @@ var (
 			Help:      "Histograms of Azure Storage API calls durations in seconds",
 			Buckets:   []float64{0.10, 0.15, 0.20, 0.50, 1.0, 2.0, 3.0, 5.0},
 		},
-		[]string{},
+		[]string{"subscription", "resource_group", "account"},
 	)
 )
 
@@ -147,6 +149,7 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, ac
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
+	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBlobContainersClient(accountResourceDetails.SubscriptionID)
 
 	if err != nil {
@@ -158,11 +161,11 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, ac
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureStorageAPICall(t1)
+	ObserveAzureStorageAPICall(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureStorageAPICallFailed(t1)
+		ObserveAzureStorageAPICallFailed(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 
@@ -202,6 +205,7 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
+	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetStorageAccountsClient(accountResourceDetails.SubscriptionID)
 
 	if err != nil {
@@ -213,11 +217,11 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account 
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureStorageAPICall(t1)
+	ObserveAzureStorageAPICall(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureStorageAPICallFailed(t1)
+		ObserveAzureStorageAPICallFailed(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 
@@ -260,10 +264,8 @@ func (s *StorageAccountMetrics) DeleteLabelValues(labels ...string) {
 
 // WalkBlob is called over each blobs listed by the function walking the
 // storage account container.
-func (s *StorageAccountMetrics) WalkBlob(account *storage.Account, container *storage.ListContainerItem, blob *azblob.BlobItem) {
-	details, _ := ParseResourceID(*account.ID)
-
+func (s *StorageAccountMetrics) WalkBlob(subscription *subscription.Model, group *resources.Group, account *storage.Account, container *storage.ListContainerItem, blob *azblob.BlobItem) {
 	s.ContainerBlobSizeHistogram.
-		WithLabelValues(details.SubscriptionID, details.ResourceGroup, *account.Name, *container.Name).
+		WithLabelValues(*subscription.DisplayName, *group.Name, *account.Name, *container.Name).
 		Observe(float64(*blob.Properties.ContentLength))
 }

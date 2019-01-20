@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/Azure/azure-storage-blob-go/azblob"
 )
@@ -22,12 +24,26 @@ type StorageAccountContainerWalker interface {
 	// Unlock releases the lock.
 	Unlock()
 	// WalkBlob is called for all blobs listed by the Walking function.
-	WalkBlob(*storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
+	WalkBlob(*subscription.Model, *resources.Group, *storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
 }
 
 // WalkStorageAccountContainer applies a function on all storage account containter blobs.
 func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, account *storage.Account, container *storage.ListContainerItem, walker StorageAccountContainerWalker) error {
 	token, err := GetStorageToken(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	accountResourceDetails, err := ParseResourceID(*account.ID)
+
+	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
+
+	if err != nil {
+		return err
+	}
+
+	group, err := GetResourceGroup(ctx, clients, sub, accountResourceDetails.ResourceGroup)
 
 	if err != nil {
 		return err
@@ -44,26 +60,23 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, acc
 	containerURL := serviceURL.NewContainerURL(*container.Name)
 
 	marker := azblob.Marker{}
+	listOptions := azblob.ListBlobsSegmentOptions{
+		Details: azblob.BlobListingDetails{
+			Snapshots: true,
+		},
+	}
 
 	for i := 0; ; i++ {
 		t0 := time.Now()
-		list, err := containerURL.ListBlobsFlatSegment(
-			ctx,
-			marker,
-			azblob.ListBlobsSegmentOptions{
-				Details: azblob.BlobListingDetails{
-					Snapshots: true,
-				},
-			},
-		)
+		list, err := containerURL.ListBlobsFlatSegment(ctx, marker, listOptions)
 		t1 := time.Since(t0).Seconds()
 
 		ObserveAzureAPICall(t1)
-		ObserveAzureStorageAPICall(t1)
+		ObserveAzureStorageAPICall(t1, *sub.DisplayName, *group.Name, *account.Name)
 
 		if err != nil {
 			ObserveAzureAPICallFailed(t1)
-			ObserveAzureStorageAPICallFailed(t1)
+			ObserveAzureStorageAPICallFailed(t1, *sub.DisplayName, *group.Name, *account.Name)
 			return err
 		}
 
@@ -72,7 +85,7 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, acc
 
 		walker.Lock()
 		for _, blob := range list.Segment.BlobItems {
-			walker.WalkBlob(account, container, &blob)
+			walker.WalkBlob(sub, group, account, container, &blob)
 		}
 		walker.Unlock()
 

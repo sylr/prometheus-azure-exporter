@@ -11,7 +11,7 @@ import (
 
 // GetSubscription
 func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID string) (*subscription.Model, error) {
-	c := tools.GetCache(5 * time.Minute)
+	c := tools.GetCache(1 * time.Hour)
 
 	if csub, ok := c.Get(subscriptionID); ok {
 		if sub, ok := csub.(*subscription.Model); ok {
