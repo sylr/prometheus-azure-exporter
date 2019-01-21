@@ -81,22 +81,22 @@ func UpdateStorageMetrics(ctx context.Context) {
 	wg := tools.NewBoundedWaitGroup(10)
 
 	// Loop over storage accounts.
-	for _, account := range *storageAccounts {
+	for accountKey := range *storageAccounts {
 		accountLogger := contextLogger.WithFields(log.Fields{
-			"account": *account.Name,
+			"account": *(*storageAccounts)[accountKey].Name,
 		})
 
 		accountLogger.Debugf("Start updating storage account")
-		containers, err := azure.ListStorageAccountContainers(ctx, azureClients, sub, &account)
+		containers, err := azure.ListStorageAccountContainers(ctx, azureClients, sub, &(*storageAccounts)[accountKey])
 
 		if err != nil {
 			contextLogger.Fatalf("%v", err)
-			accountMetrics.DeleteLabelValues(*account.Name)
+			accountMetrics.DeleteLabelValues(*(*storageAccounts)[accountKey].Name)
 			continue
 		}
 
 		// Loop over storage accounts
-		for key := range *containers {
+		for containerKey := range *containers {
 			// wg needs to be incremented outside the goroutine otherwise we could
 			// reach wg.Wait() before wg.Add(1) is hit if it is in the goroutine.
 			wg.Add(1)
@@ -115,11 +115,11 @@ func UpdateStorageMetrics(ctx context.Context) {
 				}
 
 				wg.Done()
-			}(&wg, sub, &account, &(*containers)[key], &accountMetrics)
-			// -------------------^^^^^^^^^^^^^^^^^^^-----------------
+			}(&wg, sub, &(*storageAccounts)[accountKey], &(*containers)[containerKey], &accountMetrics)
+			// ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--^^^^^^^^^^^^^^^^^^^^^^^^^^^^------------------
 			// https://play.golang.org/p/YRGEg4LS5jd
 			// https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
-			// -------------------------------------------------------
+			// ----------------------------------------------------------------------------------------
 		}
 
 		accountLogger.Debugf("Done updating storage account")
