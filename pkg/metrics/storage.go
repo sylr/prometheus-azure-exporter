@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -19,12 +20,12 @@ const (
 )
 
 var (
-	storageAccountBlobSizeHistogram = newStorageAccountBlobSizeHistogram()
+	storageAccountContainerBlobSizeHistogram = newStorageAccountContainerBlobSizeHistogram()
 )
 
 // -----------------------------------------------------------------------------
 
-func newStorageAccountBlobSizeHistogram() *prometheus.HistogramVec {
+func newStorageAccountContainerBlobSizeHistogram() *prometheus.HistogramVec {
 	return prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "azure",
@@ -36,14 +37,14 @@ func newStorageAccountBlobSizeHistogram() *prometheus.HistogramVec {
 				250 * megaBytes, 500 * megaBytes, 1 * gigaBytes,
 			},
 		},
-		[]string{"account", "container"},
+		[]string{"subscription", "resource_group", "account", "container"},
 	)
 }
 
 // -----------------------------------------------------------------------------
 
 func init() {
-	prometheus.MustRegister(storageAccountBlobSizeHistogram)
+	prometheus.MustRegister(storageAccountContainerBlobSizeHistogram)
 
 	RegisterUpdateMetricsFunctionsWithInterval("UpdateStorageMetrics", UpdateStorageMetrics, 60*time.Minute)
 }
@@ -56,15 +57,24 @@ func UpdateStorageMetrics(ctx context.Context) {
 	})
 
 	azureClients := azure.NewAzureClients()
-	storageAccounts, err := azure.ListSubscriptionStorageAccounts(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
+	sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
+
+	if err != nil {
+		contextLogger.Errorf("Unable to get subscription: %s", err)
+		return
+	}
+
+	storageAccounts, err := azure.ListSubscriptionStorageAccounts(ctx, azureClients, sub)
 
 	if err != nil {
 		contextLogger.Errorf("Unable to list account azure storage accounts: %s", err)
 		return
 	}
 
-	hist := newStorageAccountBlobSizeHistogram()
-	blobsMetrics := StorageAccountContainerMetrics{BlobsSizeHistogram: hist}
+	hist := newStorageAccountContainerBlobSizeHistogram()
+	accountMetrics := azure.StorageAccountMetrics{
+		ContainerBlobSizeHistogram: hist,
+	}
 
 	// Loop over storage accounts.
 	for _, account := range *storageAccounts {
@@ -73,11 +83,11 @@ func UpdateStorageMetrics(ctx context.Context) {
 		})
 
 		accountLogger.Debugf("Start updating storage account")
-		containers, err := azure.ListStorageAccountContainers(ctx, azureClients, &account)
+		containers, err := azure.ListStorageAccountContainers(ctx, azureClients, sub, &account)
 
 		if err != nil {
 			contextLogger.Fatalf("%v", err)
-			blobsMetrics.DeleteLabelValues(*account.Name)
+			accountMetrics.DeleteLabelValues(*account.Name)
 			continue
 		}
 
@@ -91,25 +101,25 @@ func UpdateStorageMetrics(ctx context.Context) {
 			// reach wg.Wait() before wg.Add(1) is hit if it is in the goroutine.
 			wg.Add(1)
 
-			go func(wg *tools.BoundedWaitGroup, account *storage.Account, container *storage.ListContainerItem, walker *StorageAccountContainerMetrics) {
+			go func(wg *tools.BoundedWaitGroup, subscription *subscription.Model, account *storage.Account, container *storage.ListContainerItem, walker *azure.StorageAccountMetrics) {
 				accountLogger.Debugf("Start updating container: %s", *container.Name)
 
 				t0 := time.Now()
-				err := azure.WalkStorageAccount(ctx, azureClients, account, container, walker)
+				err := azure.WalkStorageAccountContainer(ctx, azureClients, subscription, account, container, walker)
 				t1 := time.Since(t0)
 
 				if err != nil {
-					accountLogger.Fatalf("%v", err)
+					accountLogger.Error(err)
 				}
 
 				accountLogger.Debugf("Done updating container: %s (%v)", *container.Name, t1)
 
 				wg.Done()
-			}(&wg, &account, &(*containers)[key], &blobsMetrics)
-			// --------------^^^^^^^^^^^^^^^^^^^----------------
+			}(&wg, sub, &account, &(*containers)[key], &accountMetrics)
+			// --------------------^^^^^^^^^^^^^^^^^^^-----------------
 			// https://play.golang.org/p/YRGEg4LS5jd
 			// https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
-			// -------------------------------------------------
+			// --------------------------------------------------------
 		}
 
 		wg.Wait()
@@ -118,5 +128,5 @@ func UpdateStorageMetrics(ctx context.Context) {
 	}
 
 	// swapping current registered histogram with an updated copy
-	*storageAccountBlobSizeHistogram = *blobsMetrics.BlobsSizeHistogram
+	*storageAccountContainerBlobSizeHistogram = *accountMetrics.ContainerBlobSizeHistogram
 }

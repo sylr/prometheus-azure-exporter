@@ -6,6 +6,13 @@ setup_git() {
 }
 
 vendor() {
+  if [[ "$TRAVIS_EVENT_TYPE" != "pull_request" ]]; then
+    exit 0
+  fi
+
+  if [[ "$TRAVIS_PULL_REQUEST_BRANCH" != dependabot/go_modules/* ]]; then
+    exit 0
+  fi
     make vendor
 }
 
@@ -14,7 +21,7 @@ git_checkout() {
     exit 0
   fi
 
-  if [[ "$TRAVIS_PULL_REQUEST_BRANCH" != dependabot* ]]; then
+  if [[ "$TRAVIS_PULL_REQUEST_BRANCH" != dependabot/go_modules/* ]]; then
     exit 0
   fi
 
@@ -29,7 +36,7 @@ push_back() {
     exit 0
   fi
 
-  if [[ "$TRAVIS_PULL_REQUEST_BRANCH" !=  dependabot* ]]; then
+  if [[ "$TRAVIS_PULL_REQUEST_BRANCH" != dependabot/go_modules/* ]]; then
     exit 0
   fi
 
@@ -37,12 +44,12 @@ push_back() {
 }
 
 case "$1" in
-    vendor)     vendor
+    vendor)         vendor
         ;;
-    push-back)  push_back
+    push-back)      push_back
         ;;
-    git-checkout) git_checkout
+    git-checkout)   git_checkout
         ;;
-    *)          echo >&2 "Wrong argument '$1'" && exit 1
+    *)              echo >&2 "Wrong argument '$1'" && exit 1
         ;;
 esac

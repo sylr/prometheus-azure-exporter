@@ -9,12 +9,30 @@ import (
 )
 
 var (
+	authorizer                    autorest.Authorizer
 	graphAuthorizer               autorest.Authorizer
 	batchAuthorizer               autorest.Authorizer
 	batchAuthorizerWithResource   autorest.Authorizer
 	storageAuthorizer             autorest.Authorizer
 	storageAuthorizerWithResource autorest.Authorizer
 )
+
+// GetAuthorizer get graph authorizer
+func GetAuthorizer() (autorest.Authorizer, error) {
+	if authorizer != nil {
+		return authorizer, nil
+	}
+
+	var err error
+
+	authorizer, err = auth.NewAuthorizerFromEnvironment()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return authorizer, err
+}
 
 // GetGraphAuthorizer get graph authorizer
 func GetGraphAuthorizer() (autorest.Authorizer, error) {

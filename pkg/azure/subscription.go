@@ -9,15 +9,15 @@ import (
 	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
 )
 
-// GetSubscription
+// GetSubscription returns a subscription
 func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID string) (*subscription.Model, error) {
-	c := tools.GetCache(5 * time.Minute)
+	c := tools.GetCache(1 * time.Hour)
 
 	if csub, ok := c.Get(subscriptionID); ok {
-		if sub, ok := csub.(*subscription.Model); ok {
-			return sub, nil
+		if sub, ok := csub.(*subscription.Model); !ok {
+			log.WithField("subscription", subscriptionID).Errorf("Failed to cast object from cache back to *subscription.Model")
 		} else {
-			log.WithField("subscription", subscriptionID).Errorf("Failed to cast object from cache back to subscription.Model")
+			return sub, nil
 		}
 	}
 

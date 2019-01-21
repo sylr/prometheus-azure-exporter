@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/Azure/azure-storage-blob-go/azblob"
 )
@@ -14,59 +16,60 @@ var (
 	blobFormatString = `https://%s.blob.core.windows.net`
 )
 
-// ContainerWalker in an interface that is to be implemented by struct you want
+// StorageAccountContainerWalker in an interface that is to be implemented by struct you want
 // to pass to Walking functions like WalkStorageAccount().
-type ContainerWalker interface {
+type StorageAccountContainerWalker interface {
 	// Lock prevents concurrent process to WalkBlob().
 	Lock()
 	// Unlock releases the lock.
 	Unlock()
 	// WalkBlob is called for all blobs listed by the Walking function.
-	WalkBlob(*storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
+	WalkBlob(*subscription.Model, *resources.Group, *storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
 }
 
-// WalkStorageAccount applies a function on all storage account containter blobs.
-func WalkStorageAccount(ctx context.Context, clients *AzureClients, account *storage.Account, container *storage.ListContainerItem, walker ContainerWalker) error {
-	keys, err := ListStorageAccountKeys(ctx, clients, account)
+// WalkStorageAccountContainer applies a function on all storage account containter blobs.
+func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account, container *storage.ListContainerItem, walker StorageAccountContainerWalker) error {
+	token, err := GetStorageToken(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	key := (*keys)[0]
-	sharedKey, err := azblob.NewSharedKeyCredential(*account.Name, *key.Value)
+	details, err := ParseResourceID(*account.ID)
+	group, err := GetResourceGroup(ctx, clients, subscription, details.ResourceGroup)
 
 	if err != nil {
 		return err
 	}
+
+	// ADAL credentials
+	accessToken := token.Token().AccessToken
+	credential := azblob.NewTokenCredential(accessToken, nil)
 
 	// Preparing browsing container.
-	pipeline := azblob.NewPipeline(sharedKey, azblob.PipelineOptions{})
+	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 	url, _ := url.Parse(fmt.Sprintf(blobFormatString, *account.Name))
 	serviceURL := azblob.NewServiceURL(*url, pipeline)
 	containerURL := serviceURL.NewContainerURL(*container.Name)
 
 	marker := azblob.Marker{}
+	listOptions := azblob.ListBlobsSegmentOptions{
+		Details: azblob.BlobListingDetails{
+			Snapshots: true,
+		},
+	}
 
 	for i := 0; ; i++ {
 		t0 := time.Now()
-		list, err := containerURL.ListBlobsFlatSegment(
-			ctx,
-			marker,
-			azblob.ListBlobsSegmentOptions{
-				Details: azblob.BlobListingDetails{
-					Snapshots: true,
-				},
-			},
-		)
+		list, err := containerURL.ListBlobsFlatSegment(ctx, marker, listOptions)
 		t1 := time.Since(t0).Seconds()
 
 		ObserveAzureAPICall(t1)
-		ObserveAzureStorageAPICall(t1)
+		ObserveAzureStorageAPICall(t1, *subscription.DisplayName, *group.Name, *account.Name)
 
 		if err != nil {
 			ObserveAzureAPICallFailed(t1)
-			ObserveAzureStorageAPICallFailed(t1)
+			ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, *group.Name, *account.Name)
 			return err
 		}
 
@@ -75,7 +78,7 @@ func WalkStorageAccount(ctx context.Context, clients *AzureClients, account *sto
 
 		walker.Lock()
 		for _, blob := range list.Segment.BlobItems {
-			walker.WalkBlob(account, container, &blob)
+			walker.WalkBlob(subscription, group, account, container, &blob)
 		}
 		walker.Unlock()
 

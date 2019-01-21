@@ -3,18 +3,22 @@ package azure
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
 )
 
 var (
-	cacheKeySubscriptionStorageAccounts = `sub-%s-storageaccounts`
-	cacheKeyStorageAccountContainers    = `sub-%s-rg-%s-storageaccount-%s-containers`
-	cacheKeyStorageAccountKeys          = `sub-%s-rg-%s-storageaccount-%s-keys`
+	cacheKeySubscriptionStorageAccounts          = `sub-%s-storageaccounts`
+	cacheKeySubscriptionStorageAccountContainers = `sub-%s-rg-%s-storageaccount-%s-containers`
+	cacheKeySubscriptionStorageAccountKeys       = `sub-%s-rg-%s-storageaccount-%s-keys`
 )
 
 var (
@@ -26,7 +30,7 @@ var (
 			Name:      "calls_total",
 			Help:      "Total number of calls to the Azure API",
 		},
-		[]string{},
+		[]string{"subscription", "resource_group", "account"},
 	)
 
 	// AzureAPIStorageCallsFailedTotal Total number of failed Azure Storage API calls
@@ -37,7 +41,7 @@ var (
 			Name:      "calls_failed_total",
 			Help:      "Total number of failed calls to the Azure API",
 		},
-		[]string{},
+		[]string{"subscription", "resource_group", "account"},
 	)
 
 	// AzureAPIStorageCallsDurationSecondsBuckets Histograms of Azure Storage API calls durations in seconds
@@ -49,7 +53,7 @@ var (
 			Help:      "Histograms of Azure Storage API calls durations in seconds",
 			Buckets:   []float64{0.10, 0.15, 0.20, 0.50, 1.0, 2.0, 3.0, 5.0},
 		},
-		[]string{},
+		[]string{"subscription", "resource_group", "account"},
 	)
 )
 
@@ -71,28 +75,27 @@ func ObserveAzureStorageAPICallFailed(duration float64, labels ...string) {
 }
 
 // ListSubscriptionStorageAccounts ...
-func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients, subscriptionID string) (*[]storage.Account, error) {
+func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients, subscription *subscription.Model) (*[]storage.Account, error) {
 	c := tools.GetCache(5 * time.Minute)
-	cacheKey := fmt.Sprintf(cacheKeySubscriptionStorageAccounts, subscriptionID)
+	cacheKey := fmt.Sprintf(cacheKeySubscriptionStorageAccounts, subscription.SubscriptionID)
 
 	contextLogger := log.WithFields(log.Fields{
 		"_id":          ctx.Value("id").(string),
-		"subscription": subscriptionID,
+		"subscription": subscription.DisplayName,
 	})
 
 	if caccounts, ok := c.Get(cacheKey); ok {
-		if accounts, ok := caccounts.(*[]storage.Account); ok {
-			//contextLogger.Debugf("Got []storage.Account from cache")
-			return accounts, nil
+		if accounts, ok := caccounts.(*[]storage.Account); !ok {
+			contextLogger.Errorf("Failed to cast object from cache back to *[]storage.Account")
 		} else {
-			contextLogger.Errorf("Failed to cast object from cache back to []storage.Account")
+			return accounts, nil
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	client, err := clients.GetStorageAccountsClient(subscriptionID)
+	client, err := clients.GetStorageAccountsClient(*subscription.SubscriptionID)
 
 	if err != nil {
 		return nil, err
@@ -116,15 +119,15 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 }
 
 // ListStorageAccountContainers ...
-func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, account *storage.Account) (*[]storage.ListContainerItem, error) {
+func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.ListContainerItem, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
+	accountDetails, err := ParseResourceID(*account.ID)
 
 	cacheKey := fmt.Sprintf(
-		cacheKeyStorageAccountContainers,
-		accountResourceDetails.SubscriptionID,
-		accountResourceDetails.ResourceGroup,
+		cacheKeySubscriptionStorageAccountContainers,
+		*subscription.SubscriptionID,
+		accountDetails.ResourceGroup,
 		*account.Name,
 	)
 
@@ -134,33 +137,32 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, ac
 	})
 
 	if ccontainers, ok := c.Get(cacheKey); ok {
-		if containers, ok := ccontainers.(*[]storage.ListContainerItem); ok {
-			//contextLogger.Debugf("Got []storage.ListContainerItem from cache")
-			return containers, nil
+		if containers, ok := ccontainers.(*[]storage.ListContainerItem); !ok {
+			contextLogger.Errorf("Failed to cast object from cache back to *[]storage.ListContainerItem")
 		} else {
-			contextLogger.Errorf("Failed to cast object from cache back to []storage.ListContainerItem")
+			return containers, nil
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	client, err := clients.GetBlobContainersClient(accountResourceDetails.SubscriptionID)
+	client, err := clients.GetBlobContainersClient(*subscription.SubscriptionID)
 
 	if err != nil {
 		return nil, err
 	}
 
 	t0 := time.Now()
-	containers, err := client.List(ctx, accountResourceDetails.ResourceGroup, *account.Name)
+	containers, err := client.List(ctx, accountDetails.ResourceGroup, *account.Name)
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureStorageAPICall(t1)
+	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureStorageAPICallFailed(t1)
+		ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 
@@ -171,15 +173,15 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, ac
 }
 
 // ListStorageAccountKeys ...
-func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account *storage.Account) (*[]storage.AccountKey, error) {
+func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.AccountKey, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
+	accountDetails, err := ParseResourceID(*account.ID)
 
 	cacheKey := fmt.Sprintf(
-		cacheKeyStorageAccountKeys,
-		accountResourceDetails.SubscriptionID,
-		accountResourceDetails.ResourceGroup,
+		cacheKeySubscriptionStorageAccountKeys,
+		*subscription.SubscriptionID,
+		accountDetails.ResourceGroup,
 		*account.Name,
 	)
 
@@ -189,33 +191,32 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account 
 	})
 
 	if ckeys, ok := c.Get(cacheKey); ok {
-		if keys, ok := ckeys.(*[]storage.AccountKey); ok {
-			//contextLogger.Debugf("Got []storage.AccountKey from cache")
-			return keys, nil
+		if keys, ok := ckeys.(*[]storage.AccountKey); !ok {
+			contextLogger.Errorf("Failed to cast object from cache back to *[]storage.AccountKey")
 		} else {
-			contextLogger.Errorf("Failed to cast object from cache back to []storage.AccountKey")
+			return keys, nil
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	client, err := clients.GetStorageAccountsClient(accountResourceDetails.SubscriptionID)
+	client, err := clients.GetStorageAccountsClient(*subscription.SubscriptionID)
 
 	if err != nil {
 		return nil, err
 	}
 
 	t0 := time.Now()
-	keys, err := client.ListKeys(ctx, accountResourceDetails.ResourceGroup, *account.Name)
+	keys, err := client.ListKeys(ctx, accountDetails.ResourceGroup, *account.Name)
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureStorageAPICall(t1)
+	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureStorageAPICallFailed(t1)
+		ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 
@@ -223,4 +224,43 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account 
 	c.SetDefault(cacheKey, &vals)
 
 	return &vals, nil
+}
+
+// StorageAccountMetrics ...
+type StorageAccountMetrics struct {
+	ContainerBlobSizeHistogram *prometheus.HistogramVec
+	mutex                      sync.RWMutex
+}
+
+// Lock is here to make sure several Walkers do not update ContainerBlobSizeHistogram
+// at the same time.
+func (s *StorageAccountMetrics) Lock() {
+	s.mutex.Lock()
+}
+
+// Unlock releases the lock.
+func (s *StorageAccountMetrics) Unlock() {
+	s.mutex.Unlock()
+}
+
+// Reset resets the histogram data.
+func (s *StorageAccountMetrics) Reset() {
+	s.Lock()
+	s.ContainerBlobSizeHistogram.Reset()
+	s.Unlock()
+}
+
+// DeleteLabelValues deletes histogram's data associated with given labels.
+func (s *StorageAccountMetrics) DeleteLabelValues(labels ...string) {
+	s.Lock()
+	s.ContainerBlobSizeHistogram.DeleteLabelValues(labels...)
+	s.Unlock()
+}
+
+// WalkBlob is called over each blobs listed by the function walking the
+// storage account container.
+func (s *StorageAccountMetrics) WalkBlob(subscription *subscription.Model, group *resources.Group, account *storage.Account, container *storage.ListContainerItem, blob *azblob.BlobItem) {
+	s.ContainerBlobSizeHistogram.
+		WithLabelValues(*subscription.DisplayName, *group.Name, *account.Name, *container.Name).
+		Observe(float64(*blob.Properties.ContentLength))
 }

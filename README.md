@@ -34,15 +34,20 @@ Azure resources
 |                         | azure_api_calls_failed_total                    |
 |                         | azure_api_batch_calls_total                     | subscription, resource_group, account
 |                         | azure_api_batch_calls_failed_total              | subscription, resource_group, account
-|                         | azure_api_batch_calls_duration_seconds          | subscription, resource_group, account
+|                         | azure_api_batch_calls_duration_seconds_bucket   | subscription, resource_group, account
 |                         | azure_api_batch_calls_duration_seconds_sum      | subscription, resource_group, account
 |                         | azure_api_batch_calls_duration_seconds_count    | subscription, resource_group, account
 |                         | azure_api_graph_calls_total                     |
 |                         | azure_api_graph_calls_failed_total              |
-|                         | azure_api_graph_calls_duration_seconds          |
+|                         | azure_api_graph_calls_duration_seconds_bucket   |
 |                         | azure_api_graph_calls_duration_seconds_sum      |
 |                         | azure_api_graph_calls_duration_seconds_count    |
 |                         | azure_api_read_rate_limit_remaining             | subscription
+|                         | azure_api_storage_calls_total                   | subscription, resource_group, account
+|                         | azure_api_storage_calls_failed_total            | subscription, resource_group, account
+|                         | azure_api_storage_calls_duration_seconds_bucket | subscription, resource_group, account
+|                         | azure_api_storage_calls_duration_seconds_sum    | subscription, resource_group, account
+|                         | azure_api_storage_calls_duration_seconds_count  | subscription, resource_group, account
 | Batch                   | azure_batch_pool_quota                          | subscription, resource_group, account
 |                         | azure_batch_dedicated_core_quota                | subscription, resource_group, account
 |                         | azure_batch_pool_dedicated_nodes                | subscription, resource_group, account, pool
@@ -53,3 +58,6 @@ Azure resources
 |                         | azure_batch_job_tasks_failed_total              | subscription, resource_group, account, job_id, job_name
 | Graph                   | azure_graph_application_key_expire_time         | application, key
 |                         | azure_graph_application_password_expire_time    | application, password
+| Storage                 | azure_storage_blob_size_bytes_bucket            | subscription, resource_group, account, container
+|                         | azure_storage_blob_size_bytes_sum               | subscription, resource_group, account, container
+|                         | azure_storage_blob_size_bytes_count             | subscription, resource_group, account, container

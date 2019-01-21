@@ -7,6 +7,7 @@ import (
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/Azure/go-autorest/autorest"
 	log "github.com/sirupsen/logrus"
@@ -23,6 +24,7 @@ type AzureClients struct {
 	storageAccountsClients      map[string]*storage.AccountsClient
 	storageAccountUsagesClients map[string]*storage.UsagesClient
 	blobContainersClients       map[string]*storage.BlobContainersClient
+	groupClients                map[string]*resources.GroupsClient
 }
 
 // NewAzureClients makes new AzureClients object
@@ -37,6 +39,7 @@ func NewAzureClients() *AzureClients {
 		storageAccountsClients:      make(map[string]*storage.AccountsClient),
 		storageAccountUsagesClients: make(map[string]*storage.UsagesClient),
 		blobContainersClients:       make(map[string]*storage.BlobContainersClient),
+		groupClients:                make(map[string]*resources.GroupsClient),
 	}
 
 	return azc
@@ -60,6 +63,26 @@ func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscrip
 	azc.subscriptionsClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
 
 	return azc.subscriptionsClients[subscriptionID], nil
+}
+
+// GetGroupClient return group client
+func (azc *AzureClients) GetGroupClient(subscriptionID string) (*resources.GroupsClient, error) {
+	if _, ok := azc.groupClients[subscriptionID]; ok {
+		return azc.groupClients[subscriptionID], nil
+	}
+
+	auth, err := GetAuthorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := resources.NewGroupsClient(subscriptionID)
+	azc.groupClients[subscriptionID] = &client
+	azc.groupClients[subscriptionID].Authorizer = auth
+	azc.groupClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
+
+	return azc.groupClients[subscriptionID], nil
 }
 
 // GetBatchAccountClient return batch account client for specific subscription

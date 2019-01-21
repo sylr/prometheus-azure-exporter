@@ -74,12 +74,11 @@ func ListApplications(ctx context.Context, clients *AzureClients) (*[]graph.Appl
 
 	cacheKey := os.Getenv("AZURE_TENANT_ID") + "-applications"
 
-	if cApplications, ok := c.Get(cacheKey); ok {
-		if apps, ok := cApplications.(*[]graph.Application); ok {
-			//contextLogger.Debugf("Got *[]graph.Application from cache (len: %d, cap: %d)", len(*apps), cap(*apps))
-			return apps, nil
-		} else {
+	if capplications, ok := c.Get(cacheKey); ok {
+		if apps, ok := capplications.(*[]graph.Application); !ok {
 			contextLogger.Errorf("Failed to cast object from cache back to *[]graph.Application")
+		} else {
+			return apps, nil
 		}
 	}
 
