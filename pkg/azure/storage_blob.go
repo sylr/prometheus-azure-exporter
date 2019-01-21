@@ -35,15 +35,14 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, acc
 		return err
 	}
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
-
-	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
+	details, err := ParseResourceID(*account.ID)
+	sub, err := GetSubscription(ctx, clients, details.SubscriptionID)
 
 	if err != nil {
 		return err
 	}
 
-	group, err := GetResourceGroup(ctx, clients, sub, accountResourceDetails.ResourceGroup)
+	group, err := GetResourceGroup(ctx, clients, sub, details.ResourceGroup)
 
 	if err != nil {
 		return err

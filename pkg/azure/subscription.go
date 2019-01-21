@@ -9,7 +9,7 @@ import (
 	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
 )
 
-// GetSubscription
+// GetSubscription returns a subscription
 func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID string) (*subscription.Model, error) {
 	c := tools.GetCache(1 * time.Hour)
 

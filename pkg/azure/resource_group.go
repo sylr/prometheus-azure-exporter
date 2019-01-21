@@ -15,7 +15,7 @@ var (
 	cacheKeyResourceGroup = "sub-%s-rg-%s"
 )
 
-// GetResourceGroup
+// GetResourceGroup returns a Group
 func GetResourceGroup(ctx context.Context, clients *AzureClients, subscription *subscription.Model, name string) (*resources.Group, error) {
 	c := tools.GetCache(1 * time.Hour)
 	cacheKey := fmt.Sprintf(cacheKeyResourceGroup, *subscription.DisplayName, name)

@@ -65,7 +65,7 @@ func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscrip
 	return azc.subscriptionsClients[subscriptionID], nil
 }
 
-// GetSubscriptionClient return subscription client
+// GetGroupClient return group client
 func (azc *AzureClients) GetGroupClient(subscriptionID string) (*resources.GroupsClient, error) {
 	if _, ok := azc.groupClients[subscriptionID]; ok {
 		return azc.groupClients[subscriptionID], nil

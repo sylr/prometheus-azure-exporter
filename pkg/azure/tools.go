@@ -1,7 +1,5 @@
 package azure
 
-// Original code from: https://gist.github.com/vladbarosan/fb2528754cbd97df51ca11fe7be27d2f
-
 import (
 	"fmt"
 	"regexp"
@@ -26,11 +24,12 @@ type ResourceDetails struct {
 	SubscriptionID string
 	ResourceGroup  string
 	Provider       string
-	ResourceType   string
-	ResourceName   string
+	Type           string
+	Name           string
 }
 
 // ParseResourceID parses a resource ID into a ResourceDetails struct
+// Original code from: https://gist.github.com/vladbarosan/fb2528754cbd97df51ca11fe7be27d2f
 func ParseResourceID(resourceID string) (*ResourceDetails, error) {
 	cacheKey := fmt.Sprintf(cacheKeyResourceID, resourceID)
 
@@ -53,8 +52,8 @@ func ParseResourceID(resourceID string) (*ResourceDetails, error) {
 		SubscriptionID: match[1],
 		ResourceGroup:  match[2],
 		Provider:       match[3],
-		ResourceType:   match[4],
-		ResourceName:   resourceName,
+		Type:           match[4],
+		Name:           resourceName,
 	}
 
 	cache.SetDefault(cacheKey, details)
