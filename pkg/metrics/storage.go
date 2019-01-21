@@ -76,6 +76,10 @@ func UpdateStorageMetrics(ctx context.Context) {
 		ContainerBlobSizeHistogram: hist,
 	}
 
+	// Create a bounded wait group which allows 10 concurrent processes for
+	// updating account's container's metrics.
+	wg := tools.NewBoundedWaitGroup(10)
+
 	// Loop over storage accounts.
 	for _, account := range *storageAccounts {
 		accountLogger := contextLogger.WithFields(log.Fields{
@@ -90,10 +94,6 @@ func UpdateStorageMetrics(ctx context.Context) {
 			accountMetrics.DeleteLabelValues(*account.Name)
 			continue
 		}
-
-		// Create a bounded wait group which allows 4 concurrent processes for
-		// updating account's container's metrics.
-		wg := tools.NewBoundedWaitGroup(4)
 
 		// Loop over storage accounts
 		for key := range *containers {
@@ -122,10 +122,10 @@ func UpdateStorageMetrics(ctx context.Context) {
 			// -------------------------------------------------------
 		}
 
-		wg.Wait()
-
 		accountLogger.Debugf("Done updating storage account")
 	}
+
+	wg.Wait()
 
 	// swapping current registered histogram with an updated copy
 	*storageAccountContainerBlobSizeHistogram = *accountMetrics.ContainerBlobSizeHistogram
