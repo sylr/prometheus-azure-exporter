@@ -110,16 +110,16 @@ func UpdateStorageMetrics(ctx context.Context) {
 
 				if err != nil {
 					accountLogger.Error(err)
+				} else {
+					accountLogger.Debugf("Done updating container: %s (%v)", *container.Name, t1)
 				}
-
-				accountLogger.Debugf("Done updating container: %s (%v)", *container.Name, t1)
 
 				wg.Done()
 			}(&wg, sub, &account, &(*containers)[key], &accountMetrics)
-			// --------------------^^^^^^^^^^^^^^^^^^^-----------------
+			// -------------------^^^^^^^^^^^^^^^^^^^-----------------
 			// https://play.golang.org/p/YRGEg4LS5jd
 			// https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
-			// --------------------------------------------------------
+			// -------------------------------------------------------
 		}
 
 		wg.Wait()
