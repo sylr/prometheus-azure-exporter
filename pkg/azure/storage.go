@@ -85,11 +85,10 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 	})
 
 	if caccounts, ok := c.Get(cacheKey); ok {
-		if accounts, ok := caccounts.(*[]storage.Account); ok {
-			//contextLogger.Debugf("Got []storage.Account from cache")
-			return accounts, nil
+		if accounts, ok := caccounts.(*[]storage.Account); !ok {
+			contextLogger.Errorf("Failed to cast object from cache back to *[]storage.Account")
 		} else {
-			contextLogger.Errorf("Failed to cast object from cache back to []storage.Account")
+			return accounts, nil
 		}
 	}
 
@@ -138,11 +137,10 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, ac
 	})
 
 	if ccontainers, ok := c.Get(cacheKey); ok {
-		if containers, ok := ccontainers.(*[]storage.ListContainerItem); ok {
-			//contextLogger.Debugf("Got []storage.ListContainerItem from cache")
-			return containers, nil
+		if containers, ok := ccontainers.(*[]storage.ListContainerItem); !ok {
+			contextLogger.Errorf("Failed to cast object from cache back to *[]storage.ListContainerItem")
 		} else {
-			contextLogger.Errorf("Failed to cast object from cache back to []storage.ListContainerItem")
+			return containers, nil
 		}
 	}
 
@@ -194,11 +192,10 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, account 
 	})
 
 	if ckeys, ok := c.Get(cacheKey); ok {
-		if keys, ok := ckeys.(*[]storage.AccountKey); ok {
-			//contextLogger.Debugf("Got []storage.AccountKey from cache")
-			return keys, nil
+		if keys, ok := ckeys.(*[]storage.AccountKey); !ok {
+			contextLogger.Errorf("Failed to cast object from cache back to *[]storage.AccountKey")
 		} else {
-			contextLogger.Errorf("Failed to cast object from cache back to []storage.AccountKey")
+			return keys, nil
 		}
 	}
 

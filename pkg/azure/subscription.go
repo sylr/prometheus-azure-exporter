@@ -14,10 +14,10 @@ func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID 
 	c := tools.GetCache(1 * time.Hour)
 
 	if csub, ok := c.Get(subscriptionID); ok {
-		if sub, ok := csub.(*subscription.Model); ok {
-			return sub, nil
+		if sub, ok := csub.(*subscription.Model); !ok {
+			log.WithField("subscription", subscriptionID).Errorf("Failed to cast object from cache back to *subscription.Model")
 		} else {
-			log.WithField("subscription", subscriptionID).Errorf("Failed to cast object from cache back to subscription.Model")
+			return sub, nil
 		}
 	}
 

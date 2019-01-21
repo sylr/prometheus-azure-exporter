@@ -21,10 +21,10 @@ func GetResourceGroup(ctx context.Context, clients *AzureClients, subscription *
 	cacheKey := fmt.Sprintf(cacheKeyResourceGroup, *subscription.DisplayName, name)
 
 	if cgroup, ok := c.Get(cacheKey); ok {
-		if group, ok := cgroup.(*resources.Group); ok {
-			return group, nil
-		} else {
+		if group, ok := cgroup.(*resources.Group); !ok {
 			log.Errorf("Failed to cast object from cache back to *resources.Group")
+		} else {
+			return group, nil
 		}
 	}
 

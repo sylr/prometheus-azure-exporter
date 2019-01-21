@@ -25,10 +25,10 @@ func GetStorageToken(ctx context.Context) (*adal.ServicePrincipalToken, error) {
 	})
 
 	if ctoken, ok := c.Get(cacheKey); ok {
-		if token, ok := ctoken.(*adal.ServicePrincipalToken); ok {
-			return token, nil
-		} else {
+		if token, ok := ctoken.(*adal.ServicePrincipalToken); !ok {
 			contextLogger.Errorf("Failed to cast object from cache back to *adal.ServicePrincipalToken")
+		} else {
+			return token, nil
 		}
 	}
 
