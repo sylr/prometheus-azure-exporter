@@ -110,8 +110,16 @@ func UpdateBatchMetrics(ctx context.Context) {
 		"_id":       ctx.Value("id").(string),
 		"_function": "UpdateBatchMetrics",
 	})
+
 	azureClients := azure.NewAzureClients()
-	batchAccounts, err := azure.ListSubscriptionBatchAccounts(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
+	sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
+
+	if err != nil {
+		contextLogger.Errorf("Unable to get subscription: %s", err)
+		return
+	}
+
+	batchAccounts, err := azure.ListSubscriptionBatchAccounts(ctx, azureClients, sub)
 
 	if err != nil {
 		contextLogger.Errorf("Unable to list account azure batch accounts: %s", err)
@@ -128,16 +136,13 @@ func UpdateBatchMetrics(ctx context.Context) {
 			"account": *account.Name,
 		})
 
-		// subscription
-		sub, err := azure.GetSubscription(ctx, azureClients, os.Getenv("AZURE_SUBSCRIPTION_ID"))
-
 		// <!-- metrics
 		batchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
 		batchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
 		// metrics -->
 
 		// <!-- POOLS ----------------------------------------------------------
-		pools, err := azure.ListBatchAccountPools(ctx, azureClients, &account)
+		pools, err := azure.ListBatchAccountPools(ctx, azureClients, sub, &account)
 
 		if err != nil {
 			batchPoolsDedicatedNodes.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
@@ -158,7 +163,7 @@ func UpdateBatchMetrics(ctx context.Context) {
 		// ----------------------------------------------------------- POOLS -->
 
 		// <!-- JOBS -----------------------------------------------------------
-		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, &account)
+		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, sub, &account)
 
 		if err != nil {
 			batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
@@ -175,7 +180,7 @@ func UpdateBatchMetrics(ctx context.Context) {
 				})
 
 				// job task count
-				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, &account, &job)
+				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
 
 				// job.DisplayName can be nil but we don't want that
 				displayName := *job.ID

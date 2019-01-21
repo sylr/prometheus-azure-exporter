@@ -2,13 +2,21 @@ package azure
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+)
+
+var (
+	cacheKeySubscriptionBatchAccounts     = `sub-%s-batch-accounts`
+	cacheKeySubscriptionBatchAccountPools = `sub-%s-batch-account-%s-pools`
+	cacheKeySubscriptionBatchAccountJobs  = `sub-%s-batch-account-%s-jobs`
 )
 
 var (
@@ -65,15 +73,16 @@ func ObserveAzureBatchAPICallFailed(duration float64, labels ...string) {
 }
 
 // ListSubscriptionBatchAccounts List all subscription batch accounts
-func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, subscriptionID string) (*[]azurebatch.Account, error) {
+func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, subscription *subscription.Model) (*[]azurebatch.Account, error) {
 	c := tools.GetCache(5 * time.Minute)
+	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccounts, *subscription.SubscriptionID)
 
 	contextLogger := log.WithFields(log.Fields{
 		"_id":          ctx.Value("id").(string),
-		"subscription": subscriptionID,
+		"subscription": *subscription.DisplayName,
 	})
 
-	if caccounts, ok := c.Get(subscriptionID + "-accounts"); ok {
+	if caccounts, ok := c.Get(cacheKey); ok {
 		if accounts, ok := caccounts.(*[]azurebatch.Account); !ok {
 			contextLogger.Errorf("Failed to cast object from cache back to []azurebatch.Account")
 		} else {
@@ -84,7 +93,7 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	client, err := clients.GetBatchAccountClient(subscriptionID)
+	client, err := clients.GetBatchAccountClient(*subscription.SubscriptionID)
 
 	if err != nil {
 		return nil, err
@@ -102,24 +111,25 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 	}
 
 	vals := accounts.Values()
-	c.SetDefault(subscriptionID+"-accounts", &vals)
+	c.SetDefault(cacheKey, &vals)
 
 	return &vals, nil
 }
 
 // ListBatchAccountPools List all batch account's pools
-func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]azurebatch.Pool, error) {
+func ListBatchAccountPools(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account) ([]azurebatch.Pool, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
+	accountDetails, err := ParseResourceID(*account.ID)
+	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccountPools, *subscription.SubscriptionID, *account.Name)
 
 	contextLogger := log.WithFields(log.Fields{
 		"_id":     ctx.Value("id").(string),
-		"rg":      accountResourceDetails.ResourceGroup,
+		"rg":      accountDetails.ResourceGroup,
 		"account": *account.Name,
 	})
 
-	if cpools, ok := c.Get(*account.Name + "-pools"); ok {
+	if cpools, ok := c.Get(cacheKey); ok {
 		if pools, ok := cpools.([]azurebatch.Pool); !ok {
 			contextLogger.Errorf("Failed to cast object from cache back to []azurebatch.Pool")
 		} else {
@@ -130,45 +140,45 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, account *
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
-	client, err := clients.GetBatchPoolClient(accountResourceDetails.SubscriptionID)
+	client, err := clients.GetBatchPoolClient(accountDetails.SubscriptionID)
 
 	if err != nil {
 		return nil, err
 	}
 
 	t0 := time.Now()
-	pools, err := client.ListByBatchAccount(ctx, accountResourceDetails.ResourceGroup, *account.Name, nil, "", "")
+	pools, err := client.ListByBatchAccount(ctx, accountDetails.ResourceGroup, *account.Name, nil, "", "")
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureBatchAPICallFailed(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
+		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 
 	vals := pools.Values()
-	c.SetDefault(*account.Name+"-pools", vals)
+	c.SetDefault(cacheKey, vals)
 
 	return vals, nil
 }
 
 // ListBatchAccountJobs list batch account jobs
-func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *azurebatch.Account) ([]batch.CloudJob, error) {
+func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account) ([]batch.CloudJob, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
+	accountDetails, err := ParseResourceID(*account.ID)
+	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccountJobs, *subscription.SubscriptionID, *account.Name)
 
 	contextLogger := log.WithFields(log.Fields{
 		"_id":     ctx.Value("id").(string),
-		"rg":      accountResourceDetails.ResourceGroup,
+		"rg":      accountDetails.ResourceGroup,
 		"account": *account.Name,
 	})
 
-	if cjobs, ok := c.Get(*account.Name + "-jobs"); ok {
+	if cjobs, ok := c.Get(cacheKey); ok {
 		if jobs, ok := cjobs.([]batch.CloudJob); !ok {
 			contextLogger.Errorf("Failed to cast object from cache back to []batch.CloudJob")
 		} else {
@@ -179,7 +189,6 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {
@@ -191,27 +200,26 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, account *a
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureBatchAPICallFailed(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
+		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 
 	vals := jobs.Values()
-	c.SetDefault(*account.Name+"-jobs", vals)
+	c.SetDefault(cacheKey, vals)
 
 	return jobs.Values(), nil
 }
 
 // GetBatchJobTaskCounts get job tasks metrics
-func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *azurebatch.Account, job *batch.CloudJob) (*batch.TaskCounts, error) {
+func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account, job *batch.CloudJob) (*batch.TaskCounts, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	accountResourceDetails, err := ParseResourceID(*account.ID)
-	sub, err := GetSubscription(ctx, clients, accountResourceDetails.SubscriptionID)
+	accountDetails, err := ParseResourceID(*account.ID)
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {
@@ -223,11 +231,11 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, account *
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
-		ObserveAzureBatchAPICallFailed(t1, *sub.DisplayName, accountResourceDetails.ResourceGroup, *account.Name)
+		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
 

@@ -28,7 +28,7 @@ type StorageAccountContainerWalker interface {
 }
 
 // WalkStorageAccountContainer applies a function on all storage account containter blobs.
-func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, account *storage.Account, container *storage.ListContainerItem, walker StorageAccountContainerWalker) error {
+func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account, container *storage.ListContainerItem, walker StorageAccountContainerWalker) error {
 	token, err := GetStorageToken(ctx)
 
 	if err != nil {
@@ -36,13 +36,7 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, acc
 	}
 
 	details, err := ParseResourceID(*account.ID)
-	sub, err := GetSubscription(ctx, clients, details.SubscriptionID)
-
-	if err != nil {
-		return err
-	}
-
-	group, err := GetResourceGroup(ctx, clients, sub, details.ResourceGroup)
+	group, err := GetResourceGroup(ctx, clients, subscription, details.ResourceGroup)
 
 	if err != nil {
 		return err
@@ -71,11 +65,11 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, acc
 		t1 := time.Since(t0).Seconds()
 
 		ObserveAzureAPICall(t1)
-		ObserveAzureStorageAPICall(t1, *sub.DisplayName, *group.Name, *account.Name)
+		ObserveAzureStorageAPICall(t1, *subscription.DisplayName, *group.Name, *account.Name)
 
 		if err != nil {
 			ObserveAzureAPICallFailed(t1)
-			ObserveAzureStorageAPICallFailed(t1, *sub.DisplayName, *group.Name, *account.Name)
+			ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, *group.Name, *account.Name)
 			return err
 		}
 
@@ -84,7 +78,7 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, acc
 
 		walker.Lock()
 		for _, blob := range list.Segment.BlobItems {
-			walker.WalkBlob(sub, group, account, container, &blob)
+			walker.WalkBlob(subscription, group, account, container, &blob)
 		}
 		walker.Unlock()
 
