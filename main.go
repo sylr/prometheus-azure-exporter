@@ -8,9 +8,11 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"runtime"
 	"time"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/metrics"
@@ -46,8 +48,22 @@ var (
 	Options = PrometheusAzureExporterOptions{}
 	// Version daemon version
 	Version = "v0.1.2"
+	// Go Version
+	GoVersion = runtime.Version()
 	// parser
 	parser = flags.NewParser(&Options, flags.Default)
+)
+
+var (
+	azureExporterBuildInfo = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure_exporter",
+			Subsystem: "",
+			Name:      "build_info",
+			Help:      "Prometheus azure exporter build info",
+		},
+		[]string{"version", "goversion"},
+	)
 )
 
 func init() {
@@ -64,6 +80,9 @@ func init() {
 
 	// Only log the info severity or above.
 	log.SetLevel(log.InfoLevel)
+
+	// Register build info
+	prometheus.MustRegister(azureExporterBuildInfo)
 }
 
 // main
@@ -111,6 +130,9 @@ func main() {
 	if Options.NoCache {
 		tools.NoopCaching = true
 	}
+
+	// Set build info
+	azureExporterBuildInfo.WithLabelValues(Version, GoVersion).Set(1)
 
 	// Configure metrics update interval
 	metrics.SetUpdateMetricsInterval(time.Duration(Options.UpdateInterval) * time.Second)
