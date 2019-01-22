@@ -18,8 +18,18 @@ var (
 			Namespace: "azure_exporter",
 			Subsystem: "update_metrics_function",
 			Name:      "duration_seconds",
-			Help:      "Duration of update metrics functions",
+			Help:      "Duration of update metrics functions (does not include run which returned an error)",
 			Buckets:   []float64{1, 5, 10, 30, 60, 300, 600, 1800, 3600},
+		},
+		[]string{"function"},
+	)
+
+	updateMetricsFunctionLastDurationGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure_exporter",
+			Subsystem: "update_metrics_function",
+			Name:      "last_duration_seconds",
+			Help:      "Last duration of update metrics functions (does not include run which returned an error)",
 		},
 		[]string{"function"},
 	)
@@ -28,23 +38,24 @@ var (
 var (
 	mutex                  = sync.RWMutex{}
 	updateMetricsInterval  = 30 * time.Second
-	updateMetricsFunctions = make(map[time.Duration]map[string]func(context.Context))
+	updateMetricsFunctions = make(map[time.Duration]map[string]func(context.Context) error)
 )
 
 func init() {
 	prometheus.MustRegister(updateMetricsFunctionDurationHistogram)
+	prometheus.MustRegister(updateMetricsFunctionLastDurationGauge)
 }
 
 // initUpdateMetricsFunctionsMap makes sure the map is initialized
 func initUpdateMetricsFunctionsMap(interval time.Duration) {
 	if updateMetricsFunctions[interval] == nil {
-		updateMetricsFunctions[interval] = make(map[string]func(context.Context))
+		updateMetricsFunctions[interval] = make(map[string]func(context.Context) error)
 	}
 }
 
 // RegisterUpdateMetricsFunctions allows you to register a function
 // that will update prometheus metrics
-func RegisterUpdateMetricsFunctions(name string, f func(context.Context)) {
+func RegisterUpdateMetricsFunctions(name string, f func(context.Context) error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -54,7 +65,7 @@ func RegisterUpdateMetricsFunctions(name string, f func(context.Context)) {
 
 // RegisterUpdateMetricsFunctionsWithInterval allows you to register a function
 // that will update prometheus metrics every interval
-func RegisterUpdateMetricsFunctionsWithInterval(name string, f func(context.Context), interval time.Duration) {
+func RegisterUpdateMetricsFunctionsWithInterval(name string, f func(context.Context) error, interval time.Duration) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -108,7 +119,7 @@ func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
 		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions[interval] {
 			// We detach the update process so if it takes more than the refresh
 			// time it does not get blocked
-			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context), t time.Time) {
+			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context) error, t time.Time) {
 				id := processHash(t, updateMetricsFuncName)
 				functionLogger := processLogger.WithFields(log.Fields{
 					"_id":       id,
@@ -122,11 +133,14 @@ func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
 
 				// Run update metrics function
 				t0 := time.Now()
-				updateMetricsFunc(ctx)
+				err := updateMetricsFunc(ctx)
 				t1 := time.Since(t0)
 
 				// metrics
-				updateMetricsFunctionDurationHistogram.WithLabelValues(updateMetricsFuncName).Observe(t1.Seconds())
+				if err == nil {
+					updateMetricsFunctionDurationHistogram.WithLabelValues(updateMetricsFuncName).Observe(t1.Seconds())
+					updateMetricsFunctionLastDurationGauge.WithLabelValues(updateMetricsFuncName).Set(t1.Seconds())
+				}
 
 				functionLogger.Infof("End update metrics function in %v", t1)
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
