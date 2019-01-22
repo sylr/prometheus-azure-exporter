@@ -91,7 +91,7 @@ func GetUpdateMetricsInterval() time.Duration {
 func UpdateMetrics(ctx context.Context) {
 	wg := sync.WaitGroup{}
 
-	for interval, _ := range updateMetricsFunctions {
+	for interval := range updateMetricsFunctions {
 		go updateMetricsWithInterval(ctx, interval)
 		wg.Add(1)
 	}

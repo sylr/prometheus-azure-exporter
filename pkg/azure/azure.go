@@ -78,8 +78,8 @@ func ObserveAzureAPICallFailed(duration float64) {
 }
 
 // SetReadRateLimitRemaining ...
-func SetReadRateLimitRemaining(subscription string, reponse *http.Response) {
-	remaining := reponse.Header.Get("x-ms-ratelimit-remaining-subscription-reads")
+func SetReadRateLimitRemaining(subscription string, response *http.Response) {
+	remaining := response.Header.Get("x-ms-ratelimit-remaining-subscription-reads")
 
 	if len(remaining) > 0 {
 		f, err := strconv.ParseFloat(remaining, 64)

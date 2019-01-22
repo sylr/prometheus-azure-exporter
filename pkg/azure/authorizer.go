@@ -48,8 +48,7 @@ func GetGraphAuthorizer() (autorest.Authorizer, error) {
 		envName = azure.PublicCloud.Name
 	}
 
-	env, err := azure.EnvironmentFromName(envName)
-
+	env, _ := azure.EnvironmentFromName(envName)
 	graphAuthorizer, err = auth.NewAuthorizerFromEnvironmentWithResource(env.GraphEndpoint)
 
 	if err != nil {

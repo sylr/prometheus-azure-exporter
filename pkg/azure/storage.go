@@ -122,7 +122,7 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.ListContainerItem, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountDetails, err := ParseResourceID(*account.ID)
+	accountDetails, _ := ParseResourceID(*account.ID)
 
 	cacheKey := fmt.Sprintf(
 		cacheKeySubscriptionStorageAccountContainers,
@@ -176,7 +176,7 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.AccountKey, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountDetails, err := ParseResourceID(*account.ID)
+	accountDetails, _ := ParseResourceID(*account.ID)
 
 	cacheKey := fmt.Sprintf(
 		cacheKeySubscriptionStorageAccountKeys,

@@ -34,6 +34,7 @@ func (bwg *BoundedWaitGroup) Done() {
 	bwg.Add(-1)
 }
 
+// Wait ...
 func (bwg *BoundedWaitGroup) Wait() {
 	bwg.wg.Wait()
 }

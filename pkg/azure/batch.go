@@ -120,7 +120,7 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 func ListBatchAccountPools(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account) ([]azurebatch.Pool, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountDetails, err := ParseResourceID(*account.ID)
+	accountDetails, _ := ParseResourceID(*account.ID)
 	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccountPools, *subscription.SubscriptionID, *account.Name)
 
 	contextLogger := log.WithFields(log.Fields{
@@ -169,7 +169,7 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, subscript
 func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account) ([]batch.CloudJob, error) {
 	c := tools.GetCache(5 * time.Minute)
 
-	accountDetails, err := ParseResourceID(*account.ID)
+	accountDetails, _ := ParseResourceID(*account.ID)
 	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccountJobs, *subscription.SubscriptionID, *account.Name)
 
 	contextLogger := log.WithFields(log.Fields{
@@ -219,7 +219,7 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, subscript
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	accountDetails, err := ParseResourceID(*account.ID)
+	accountDetails, _ := ParseResourceID(*account.ID)
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
 
 	if err != nil {
