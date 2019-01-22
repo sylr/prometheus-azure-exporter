@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -33,13 +34,25 @@ spec:
         - name: AZURE_SUBSCRIPTION_ID
           value: <uuid>
         - name: AZURE_CLIENT_ID
-          value: <uuid>
+          valueFrom:
+            secretKeyRef:
+              name: prometheus-azure-exporter
+              key: AZURE_CLIENT_ID
         - name: AZURE_CLIENT_SECRET
-          value: <secret>
-        image: quay.io/sylr/prometheus-azure-exporter:latest
+          valueFrom:
+            secretKeyRef:
+              name: prometheus-azure-exporter
+              key: AZURE_CLIENT_SECRET
+        image: quay.io/sylr/prometheus-azure-exporter:master
         imagePullPolicy: Always
         name: prometheus-azure-exporter
-        resources: {}
+        resources:
+          requests:
+            cpu: 60m
+            memory: 64Mi
+          limits:
+            cpu: 2
+            memory: 512Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
