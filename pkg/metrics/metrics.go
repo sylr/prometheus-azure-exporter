@@ -38,8 +38,11 @@ var (
 var (
 	mutex                  = sync.RWMutex{}
 	updateMetricsInterval  = 30 * time.Second
-	updateMetricsFunctions = make(map[time.Duration]map[string]func(context.Context) error)
+	updateMetricsFunctions = make(map[time.Duration]map[string]UpdateMetricsFunction)
 )
+
+// UpdateMetricsFunction ...
+type UpdateMetricsFunction func(context.Context) error
 
 func init() {
 	prometheus.MustRegister(updateMetricsFunctionDurationHistogram)
@@ -49,13 +52,13 @@ func init() {
 // initUpdateMetricsFunctionsMap makes sure the map is initialized
 func initUpdateMetricsFunctionsMap(interval time.Duration) {
 	if updateMetricsFunctions[interval] == nil {
-		updateMetricsFunctions[interval] = make(map[string]func(context.Context) error)
+		updateMetricsFunctions[interval] = make(map[string]UpdateMetricsFunction)
 	}
 }
 
 // RegisterUpdateMetricsFunctions allows you to register a function
 // that will update prometheus metrics
-func RegisterUpdateMetricsFunctions(name string, f func(context.Context) error) {
+func RegisterUpdateMetricsFunctions(name string, f UpdateMetricsFunction) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -65,7 +68,7 @@ func RegisterUpdateMetricsFunctions(name string, f func(context.Context) error) 
 
 // RegisterUpdateMetricsFunctionsWithInterval allows you to register a function
 // that will update prometheus metrics every interval
-func RegisterUpdateMetricsFunctionsWithInterval(name string, f func(context.Context) error, interval time.Duration) {
+func RegisterUpdateMetricsFunctionsWithInterval(name string, f UpdateMetricsFunction, interval time.Duration) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -119,7 +122,7 @@ func updateMetricsWithInterval(ctx context.Context, interval time.Duration) {
 		for updateMetricsFuncName, updateMetricsFunc := range updateMetricsFunctions[interval] {
 			// We detach the update process so if it takes more than the refresh
 			// time it does not get blocked
-			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc func(context.Context) error, t time.Time) {
+			go func(ctx context.Context, updateMetricsFuncName string, updateMetricsFunc UpdateMetricsFunction, t time.Time) {
 				id := processHash(t, updateMetricsFuncName)
 				functionLogger := processLogger.WithFields(log.Fields{
 					"_id":       id,
