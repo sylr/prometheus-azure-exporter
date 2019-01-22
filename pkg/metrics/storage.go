@@ -46,7 +46,7 @@ func newStorageAccountContainerBlobSizeHistogram() *prometheus.HistogramVec {
 func init() {
 	prometheus.MustRegister(storageAccountContainerBlobSizeHistogram)
 
-	RegisterUpdateMetricsFunctionsWithInterval("UpdateStorageMetrics", UpdateStorageMetrics, 60*time.Minute)
+	RegisterUpdateMetricsFunctionsWithInterval("storage", UpdateStorageMetrics, 60*time.Minute)
 }
 
 // UpdateStorageMetrics updates storage metrics.

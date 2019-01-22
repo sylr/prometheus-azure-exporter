@@ -101,7 +101,7 @@ func init() {
 	prometheus.MustRegister(batchJobsTasksSucceeded)
 	prometheus.MustRegister(batchJobsTasksFailed)
 
-	RegisterUpdateMetricsFunctions("UpdateBatchMetrics", UpdateBatchMetrics)
+	RegisterUpdateMetricsFunctions("batch", UpdateBatchMetrics)
 }
 
 // UpdateBatchMetrics updates batch metrics
