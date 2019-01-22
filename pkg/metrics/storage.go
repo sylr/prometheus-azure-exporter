@@ -33,8 +33,8 @@ func newStorageAccountContainerBlobSizeHistogram() *prometheus.HistogramVec {
 			Name:      "blob_size_bytes",
 			Help:      "Histograms of Azure Storage blob size bytes",
 			Buckets: []float64{
-				1 * megaBytes, 50 * megaBytes, 100 * megaBytes,
-				250 * megaBytes, 500 * megaBytes, 1 * gigaBytes,
+				1 * kiloBytes, 50 * kiloBytes, 100 * kiloBytes, 500 * kiloBytes,
+				1 * megaBytes, 50 * megaBytes, 100 * megaBytes, 500 * megaBytes,
 			},
 		},
 		[]string{"subscription", "resource_group", "account", "container"},
