@@ -50,7 +50,7 @@ func init() {
 }
 
 // UpdateStorageMetrics updates storage metrics.
-func UpdateStorageMetrics(ctx context.Context) {
+func UpdateStorageMetrics(ctx context.Context) error {
 	contextLogger := log.WithFields(log.Fields{
 		"_id":   ctx.Value("id").(string),
 		"_func": "UpdateStorageMetrics",
@@ -61,14 +61,14 @@ func UpdateStorageMetrics(ctx context.Context) {
 
 	if err != nil {
 		contextLogger.Errorf("Unable to get subscription: %s", err)
-		return
+		return err
 	}
 
 	storageAccounts, err := azure.ListSubscriptionStorageAccounts(ctx, azureClients, sub)
 
 	if err != nil {
 		contextLogger.Errorf("Unable to list account azure storage accounts: %s", err)
-		return
+		return err
 	}
 
 	hist := newStorageAccountContainerBlobSizeHistogram()
@@ -129,4 +129,6 @@ func UpdateStorageMetrics(ctx context.Context) {
 
 	// swapping current registered histogram with an updated copy
 	*storageAccountContainerBlobSizeHistogram = *accountMetrics.ContainerBlobSizeHistogram
+
+	return err
 }

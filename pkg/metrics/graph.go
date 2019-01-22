@@ -44,7 +44,7 @@ func init() {
 }
 
 // UpdateGraphMetrics updates graph metrics
-func UpdateGraphMetrics(ctx context.Context) {
+func UpdateGraphMetrics(ctx context.Context) error {
 	contextLogger := log.WithFields(log.Fields{
 		"_id":   ctx.Value("id").(string),
 		"_func": "UpdateGraphMetrics",
@@ -60,7 +60,7 @@ func UpdateGraphMetrics(ctx context.Context) {
 		graphApplicationKeyExpire.Reset()
 		graphApplicationPasswordExpire.Reset()
 
-		return
+		return err
 	}
 
 	for _, app := range *applications {
@@ -89,4 +89,6 @@ func UpdateGraphMetrics(ctx context.Context) {
 		}
 	}
 	// -- APPLICATIONS -------------------------------------------------------!>
+
+	return err
 }

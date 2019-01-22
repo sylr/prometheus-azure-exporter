@@ -105,7 +105,7 @@ func init() {
 }
 
 // UpdateBatchMetrics updates batch metrics
-func UpdateBatchMetrics(ctx context.Context) {
+func UpdateBatchMetrics(ctx context.Context) error {
 	contextLogger := log.WithFields(log.Fields{
 		"_id":   ctx.Value("id").(string),
 		"_func": "UpdateBatchMetrics",
@@ -116,14 +116,14 @@ func UpdateBatchMetrics(ctx context.Context) {
 
 	if err != nil {
 		contextLogger.Errorf("Unable to get subscription: %s", err)
-		return
+		return err
 	}
 
 	batchAccounts, err := azure.ListSubscriptionBatchAccounts(ctx, azureClients, sub)
 
 	if err != nil {
 		contextLogger.Errorf("Unable to list account azure batch accounts: %s", err)
-		return
+		return err
 	}
 
 	for _, account := range *batchAccounts {
@@ -223,4 +223,6 @@ func UpdateBatchMetrics(ctx context.Context) {
 		}
 		// ----------------------------------------------------------- JOBS --!>
 	}
+
+	return err
 }
