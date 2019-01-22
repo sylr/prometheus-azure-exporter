@@ -45,13 +45,15 @@ func init() {
 
 // UpdateGraphMetrics updates graph metrics
 func UpdateGraphMetrics(ctx context.Context) error {
+	var err error
+
 	contextLogger := log.WithFields(log.Fields{
 		"_id":   ctx.Value("id").(string),
 		"_func": "UpdateGraphMetrics",
 	})
-	azureClients := azure.NewAzureClients()
 
 	// <!-- APPLICATIONS -------------------------------------------------------
+	azureClients := azure.NewAzureClients()
 	applications, err := azure.ListApplications(ctx, azureClients)
 
 	if err != nil {

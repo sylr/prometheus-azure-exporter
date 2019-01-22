@@ -106,6 +106,8 @@ func init() {
 
 // UpdateBatchMetrics updates batch metrics
 func UpdateBatchMetrics(ctx context.Context) error {
+	var err error
+
 	contextLogger := log.WithFields(log.Fields{
 		"_id":   ctx.Value("id").(string),
 		"_func": "UpdateBatchMetrics",

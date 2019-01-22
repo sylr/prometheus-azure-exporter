@@ -51,6 +51,8 @@ func init() {
 
 // UpdateStorageMetrics updates storage metrics.
 func UpdateStorageMetrics(ctx context.Context) error {
+	var err error
+
 	contextLogger := log.WithFields(log.Fields{
 		"_id":   ctx.Value("id").(string),
 		"_func": "UpdateStorageMetrics",
