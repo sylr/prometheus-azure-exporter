@@ -47,7 +47,7 @@ var (
 	// Options daemon options
 	Options = PrometheusAzureExporterOptions{}
 	// Version daemon version
-	Version = "v0.1.2"
+	Version = "v0.2.0"
 	// Go Version
 	GoVersion = runtime.Version()
 	// parser
