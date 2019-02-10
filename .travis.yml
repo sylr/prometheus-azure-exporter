@@ -35,6 +35,8 @@ script:
 - go mod vendor && git diff --exit-code
 - go test -v ./...
 - go build -ldflags "-X main.Version=$(git describe --tags --dirty --broken || git rev-parse --short HEAD)"
+- ./prometheus-azure-exporter --version
+- ./prometheus-azure-exporter --help
 - docker build .
 
 after_success:
