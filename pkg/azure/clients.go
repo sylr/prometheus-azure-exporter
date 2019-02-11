@@ -2,6 +2,7 @@ package azure
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
@@ -13,8 +14,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	mutex = sync.RWMutex{}
+)
+
 // AzureClients Collection of Azure clients
 type AzureClients struct {
+	mutex                       sync.RWMutex
 	batchAccountClients         map[string]*azurebatch.AccountClient
 	batchPoolClients            map[string]*azurebatch.PoolClient
 	batchJobClients             map[string]*batch.JobClient
@@ -30,6 +36,7 @@ type AzureClients struct {
 // NewAzureClients makes new AzureClients object
 func NewAzureClients() *AzureClients {
 	azc := &AzureClients{
+		mutex:                       sync.RWMutex{},
 		batchAccountClients:         make(map[string]*azurebatch.AccountClient),
 		batchPoolClients:            make(map[string]*azurebatch.PoolClient),
 		batchJobClients:             make(map[string]*batch.JobClient),
@@ -51,6 +58,9 @@ func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscrip
 		return azc.subscriptionsClients[subscriptionID], nil
 	}
 
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
 	auth, err := GetBatchAuthorizer()
 
 	if err != nil {
@@ -70,6 +80,9 @@ func (azc *AzureClients) GetGroupClient(subscriptionID string) (*resources.Group
 	if _, ok := azc.groupClients[subscriptionID]; ok {
 		return azc.groupClients[subscriptionID], nil
 	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
 
 	auth, err := GetAuthorizer()
 
@@ -91,6 +104,9 @@ func (azc *AzureClients) GetBatchAccountClient(subscriptionID string) (*azurebat
 		return azc.batchAccountClients[subscriptionID], nil
 	}
 
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
 	auth, err := GetBatchAuthorizer()
 
 	if err != nil {
@@ -110,6 +126,9 @@ func (azc *AzureClients) GetBatchPoolClient(subscriptionID string) (*azurebatch.
 	if _, ok := azc.batchPoolClients[subscriptionID]; ok {
 		return azc.batchPoolClients[subscriptionID], nil
 	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
 
 	auth, err := GetBatchAuthorizer()
 
@@ -131,6 +150,9 @@ func (azc *AzureClients) GetBatchJobClient(accountEndpoint string) (*batch.JobCl
 		return azc.batchJobClients[accountEndpoint], nil
 	}
 
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
 	auth, err := GetBatchAuthorizer()
 
 	if err != nil {
@@ -150,6 +172,9 @@ func (azc *AzureClients) GetBatchJobClientWithResource(accountEndpoint string, r
 	if _, ok := azc.batchJobClients[accountEndpoint+resource]; ok {
 		return azc.batchJobClients[accountEndpoint+resource], nil
 	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
 
 	auth, err := GetBatchAuthorizerWithResource(resource)
 
@@ -171,6 +196,9 @@ func (azc *AzureClients) GetApplicationsClient(tenantID string) (*graph.Applicat
 		return azc.applicationsClients[tenantID], nil
 	}
 
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
 	auth, err := GetGraphAuthorizer()
 
 	if err != nil {
@@ -190,6 +218,9 @@ func (azc *AzureClients) GetStorageAccountsClient(subscriptionID string) (*stora
 	if _, ok := azc.storageAccountsClients[subscriptionID]; ok {
 		return azc.storageAccountsClients[subscriptionID], nil
 	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
 
 	auth, err := GetStorageAuthorizer()
 
@@ -211,6 +242,9 @@ func (azc *AzureClients) GetStorageAccountsClientWithResource(subscriptionID str
 		return azc.storageAccountsClients[accountEndpoint+resource], nil
 	}
 
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
 	auth, err := GetStorageAuthorizerWithResource(resource)
 
 	if err != nil {
@@ -230,6 +264,9 @@ func (azc *AzureClients) GetStorageAccountUsagesClient(subscriptionID string) (*
 	if _, ok := azc.storageAccountUsagesClients[subscriptionID]; ok {
 		return azc.storageAccountUsagesClients[subscriptionID], nil
 	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
 
 	auth, err := GetStorageAuthorizer()
 
@@ -251,6 +288,9 @@ func (azc *AzureClients) GetBlobContainersClient(subscriptionID string) (*storag
 		return azc.blobContainersClients[subscriptionID], nil
 	}
 
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
 	auth, err := GetStorageAuthorizer()
 
 	if err != nil {
@@ -270,6 +310,9 @@ func (azc *AzureClients) GetBlobContainersClientWithResource(subscriptionID stri
 	if _, ok := azc.blobContainersClients[accountEndpoint+resource]; ok {
 		return azc.blobContainersClients[accountEndpoint+resource], nil
 	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
 
 	auth, err := GetStorageAuthorizerWithResource(resource)
 
