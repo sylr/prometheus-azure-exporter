@@ -6,7 +6,7 @@ WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 RUN apk update && apk upgrade && apk add --no-cache alpine-sdk
 
 RUN uname -a && go version
-RUN make install
+RUN git update-index --refresh; make install
 
 # -----------------------------------------------------------------------------
 
