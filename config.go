@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -99,12 +101,18 @@ func watchConfigFile() {
 		"_id": "00000000",
 	})
 
-	if len(config.ConfigFromFlagParser.ConfigFile) == 0 {
-		return
-	}
-
 	watcher, err := fsnotify.NewWatcher()
 	err = watcher.Add(config.CurrentConfig.ConfigFile)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(os.Getenv("KUBERNETES_PORT")) > 0 {
+		dir := filepath.Dir(config.CurrentConfig.ConfigFile)
+		logger.Infof("In kubernetes context, adding %s to watch list", dir)
+		watcher.Add(dir)
+	}
 
 	if err != nil {
 		log.Fatal(err)
@@ -116,18 +124,35 @@ func watchConfigFile() {
 		select {
 		case event, ok := <-watcher.Events:
 			if !ok {
-				return
+				logger.Error("fsnotify: error")
+				break
 			}
 
+			logger.Debugf("fsnotify: %s -> %s", event.Name, event.Op.String())
+
 			if event.Op&fsnotify.Write == fsnotify.Write {
-				logger.Info("Config file changed")
-				setConfig()
+				if event.Name == config.CurrentConfig.ConfigFile {
+					logger.Debugf("config: file changed")
+				}
+			} else if event.Op&fsnotify.Create == fsnotify.Create {
+				if event.Name == config.CurrentConfig.ConfigFile {
+					logger.Debugf("config: file created")
+				} else if filepath.Base(event.Name) == "..data" {
+					logger.Debugf("config: configmap volume updated")
+				} else {
+					break
+				}
+			} else {
+				break
 			}
+
+			logger.Info("config: reloading config")
+			setConfig()
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				return
 			}
-			logger.Error(err)
+			logger.Errorf("fsnotify: %s", err)
 		}
 	}
 }
