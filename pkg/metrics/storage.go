@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/sylr/prometheus-azure-exporter/pkg/config"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
 	"github.com/prometheus/client_golang/prometheus"
@@ -46,7 +48,9 @@ func newStorageAccountContainerBlobSizeHistogram() *prometheus.HistogramVec {
 func init() {
 	prometheus.MustRegister(storageAccountContainerBlobSizeHistogram)
 
-	RegisterUpdateMetricsFunctionsWithInterval("storage", UpdateStorageMetrics, 60*time.Minute)
+	if GetUpdateMetricsFunctionInterval("storage") == nil {
+		RegisterUpdateMetricsFunctionWithInterval("storage", UpdateStorageMetrics, 2*time.Hour)
+	}
 }
 
 // UpdateStorageMetrics updates storage metrics.
@@ -84,9 +88,19 @@ func UpdateStorageMetrics(ctx context.Context) error {
 
 	// Loop over storage accounts.
 	for accountKey := range *storageAccounts {
+		accountProperties, _ := azure.ParseResourceID(*(*storageAccounts)[accountKey].ID)
+
+		// logger
 		accountLogger := contextLogger.WithFields(log.Fields{
+			"rg":      accountProperties.ResourceGroup,
 			"account": *(*storageAccounts)[accountKey].Name,
 		})
+
+		// Autodiscovery
+		if !config.MustDiscoverBasedOnTags((*storageAccounts)[accountKey].Tags) {
+			accountLogger.Debugf("Account skipped by autodiscovery")
+			continue
+		}
 
 		accountLogger.Debugf("Start updating storage account")
 		containers, err := azure.ListStorageAccountContainers(ctx, azureClients, sub, &(*storageAccounts)[accountKey])

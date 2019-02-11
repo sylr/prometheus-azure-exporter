@@ -8,8 +8,10 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.0.2 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dimchansky/utfbom v1.0.0 // indirect
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
+	github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
 	github.com/prometheus/client_golang v0.9.2
 	github.com/satori/go.uuid v1.2.0 // indirect
@@ -19,6 +21,7 @@ require (
 	golang.org/x/sys v0.0.0-20181021155630-eda9bb28ed51 // indirect
 	google.golang.org/api v0.0.0-20181021000519-a2651947f503 // indirect
 	google.golang.org/genproto v0.0.0-20181016170114-94acd270e44e // indirect
+	gopkg.in/yaml.v2 v2.2.1
 )
 
 replace (

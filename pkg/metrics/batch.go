@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
+	"github.com/sylr/prometheus-azure-exporter/pkg/config"
 )
 
 var (
@@ -101,7 +102,9 @@ func init() {
 	prometheus.MustRegister(batchJobsTasksSucceeded)
 	prometheus.MustRegister(batchJobsTasksFailed)
 
-	RegisterUpdateMetricsFunctions("batch", UpdateBatchMetrics)
+	if GetUpdateMetricsFunctionInterval("batch") == nil {
+		RegisterUpdateMetricsFunction("batch", UpdateBatchMetrics)
+	}
 }
 
 // UpdateBatchMetrics updates batch metrics
@@ -133,10 +136,15 @@ func UpdateBatchMetrics(ctx context.Context) error {
 
 		// logger
 		accountLogger := contextLogger.WithFields(log.Fields{
-			"_id":     ctx.Value("id").(string),
 			"rg":      accountProperties.ResourceGroup,
 			"account": *account.Name,
 		})
+
+		// Autodiscovery
+		if !config.MustDiscoverBasedOnTags(account.Tags) {
+			accountLogger.Debugf("Account skipped by autodiscovery")
+			continue
+		}
 
 		// <!-- metrics
 		batchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))

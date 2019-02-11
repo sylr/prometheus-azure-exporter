@@ -40,7 +40,9 @@ func init() {
 	prometheus.MustRegister(graphApplicationKeyExpire)
 	prometheus.MustRegister(graphApplicationPasswordExpire)
 
-	RegisterUpdateMetricsFunctionsWithInterval("graph", UpdateGraphMetrics, 60*time.Second)
+	if GetUpdateMetricsFunctionInterval("graph") == nil {
+		RegisterUpdateMetricsFunctionWithInterval("graph", UpdateGraphMetrics, 60*time.Second)
+	}
 }
 
 // UpdateGraphMetrics updates graph metrics

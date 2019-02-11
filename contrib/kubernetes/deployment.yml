@@ -28,21 +28,13 @@ spec:
         app: prometheus-azure-exporter
     spec:
       containers:
-      - env:
-        - name: AZURE_TENANT_ID
-          value: <uuid>
-        - name: AZURE_SUBSCRIPTION_ID
-          value: <uuid>
-        - name: AZURE_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: prometheus-azure-exporter
-              key: AZURE_CLIENT_ID
-        - name: AZURE_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: prometheus-azure-exporter
-              key: AZURE_CLIENT_SECRET
+      - args:
+        - "--config=/etc/prometheus-azure-exporter/config.yml"
+        envFrom:
+        - configMapRef:
+            name: prometheus-azure-exporter-env
+        - secretRef:
+            name: prometheus-azure-exporter
         image: quay.io/sylr/prometheus-azure-exporter:master
         imagePullPolicy: Always
         name: prometheus-azure-exporter
@@ -55,8 +47,16 @@ spec:
             memory: 512Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/prometheus-azure-exporter
+          name: prometheus-azure-exporter-conf-volume
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: prometheus-azure-exporter-conf
+        name: prometheus-azure-exporter-conf-volume

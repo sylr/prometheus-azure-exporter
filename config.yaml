@@ -1,0 +1,9 @@
+autodiscovery_tag: prometheus_io_azure_exporter_discover
+autodiscovery_mode: Tagged
+update_metrics_functions:
+- name: storage
+  interval: 2h
+- name: batch
+  interval: 30s
+- name: graph
+  interval: 5m
