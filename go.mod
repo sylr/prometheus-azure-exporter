@@ -21,7 +21,7 @@ require (
 	golang.org/x/sys v0.0.0-20181021155630-eda9bb28ed51 // indirect
 	google.golang.org/api v0.0.0-20181021000519-a2651947f503 // indirect
 	google.golang.org/genproto v0.0.0-20181016170114-94acd270e44e // indirect
-	gopkg.in/yaml.v2 v2.2.1
+	gopkg.in/yaml.v2 v2.2.2
 )
 
 replace (
