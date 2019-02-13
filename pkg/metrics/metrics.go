@@ -253,6 +253,12 @@ func updateMetricsWithInterval(ctx context.Context, wg *sync.WaitGroup, interval
 				}
 
 				functionLogger.Infof("End update metrics function in %v", t1.Round(time.Millisecond))
+
+				// Warning if update metrics function takes more time than the
+				// interval it is registered with.
+				if t1 > interval {
+					processLogger.Warnf("Function %s takes %v, you should register this function with a greater interval", updateMetricsFuncName, t1.Round(time.Millisecond))
+				}
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
 		}
 
