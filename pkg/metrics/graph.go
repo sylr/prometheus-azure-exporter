@@ -54,16 +54,20 @@ func UpdateGraphMetrics(ctx context.Context) error {
 		"_func": "UpdateGraphMetrics",
 	})
 
+	// Create new metric vectors out of current ones
+	newGraphApplicationKeyExpire := graphApplicationKeyExpire
+	newGraphApplicationPasswordExpire := graphApplicationPasswordExpire
+
+	// Reset the new metric vectors
+	newGraphApplicationKeyExpire.Reset()
+	newGraphApplicationPasswordExpire.Reset()
+
 	// <!-- APPLICATIONS -------------------------------------------------------
 	azureClients := azure.NewAzureClients()
 	applications, err := azure.ListApplications(ctx, azureClients)
 
 	if err != nil {
 		contextLogger.Errorf("Unable to list applications: %s", err)
-
-		graphApplicationKeyExpire.Reset()
-		graphApplicationPasswordExpire.Reset()
-
 		return err
 	}
 
@@ -77,7 +81,7 @@ func UpdateGraphMetrics(ctx context.Context) error {
 				decodedName = *key.KeyID
 			}
 
-			graphApplicationKeyExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(key.EndDate.Unix()))
+			newGraphApplicationKeyExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(key.EndDate.Unix()))
 		}
 
 		for _, password := range *app.PasswordCredentials {
@@ -89,10 +93,14 @@ func UpdateGraphMetrics(ctx context.Context) error {
 				decodedName = *password.KeyID
 			}
 
-			graphApplicationPasswordExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(password.EndDate.Unix()))
+			newGraphApplicationPasswordExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(password.EndDate.Unix()))
 		}
 	}
 	// -- APPLICATIONS -------------------------------------------------------!>
+
+	// swapping current registered metrics with updated copies
+	*graphApplicationKeyExpire = *newGraphApplicationKeyExpire
+	*graphApplicationPasswordExpire = *newGraphApplicationPasswordExpire
 
 	return err
 }

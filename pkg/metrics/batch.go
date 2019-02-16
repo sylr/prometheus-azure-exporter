@@ -131,6 +131,26 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		return err
 	}
 
+	// Create new metric vectors out of current ones
+	newBatchPoolQuota := batchPoolQuota
+	newBatchDedicatedCoreQuota := batchDedicatedCoreQuota
+	newBatchPoolsDedicatedNodes := batchPoolsDedicatedNodes
+	newBatchJobsTasksActive := batchJobsTasksActive
+	newBatchJobsTasksRunning := batchJobsTasksRunning
+	newBatchJobsTasksCompleted := batchJobsTasksCompleted
+	newBatchJobsTasksSucceeded := batchJobsTasksSucceeded
+	newBatchJobsTasksFailed := batchJobsTasksFailed
+
+	// Reset the new metric vectors
+	newBatchPoolQuota.Reset()
+	newBatchDedicatedCoreQuota.Reset()
+	newBatchPoolsDedicatedNodes.Reset()
+	newBatchJobsTasksActive.Reset()
+	newBatchJobsTasksRunning.Reset()
+	newBatchJobsTasksCompleted.Reset()
+	newBatchJobsTasksSucceeded.Reset()
+	newBatchJobsTasksFailed.Reset()
+
 	for _, account := range *batchAccounts {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
 
@@ -147,20 +167,19 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		}
 
 		// <!-- metrics
-		batchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
-		batchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
+		newBatchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
+		newBatchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
 		// metrics -->
 
 		// <!-- POOLS ----------------------------------------------------------
 		pools, err := azure.ListBatchAccountPools(ctx, azureClients, sub, &account)
 
 		if err != nil {
-			batchPoolsDedicatedNodes.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
-			contextLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
+			accountLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
 		} else {
 			for _, pool := range pools {
 				// <!-- metrics
-				batchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+				newBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
 				// metrics -->
 
 				accountLogger.WithFields(log.Fields{
@@ -176,12 +195,6 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, sub, &account)
 
 		if err != nil {
-			batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
-			batchJobsTasksRunning.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
-			batchJobsTasksCompleted.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
-			batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
-			batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name)
-
 			accountLogger.Errorf("Unable to list account jobs: %s", err)
 		} else {
 			for _, job := range jobs {
@@ -201,22 +214,16 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				}
 
 				if err != nil {
-					batchJobsTasksActive.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
-					batchJobsTasksRunning.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
-					batchJobsTasksCompleted.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
-					batchJobsTasksSucceeded.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
-					batchJobsTasksFailed.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName)
-
-					contextLogger.Error(err)
+					jobLogger.Errorf("Unable to get jobs task count: %s", err)
 					continue
 				}
 
 				// <!-- metrics
-				batchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Active))
-				batchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Running))
-				batchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Completed))
-				batchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Succeeded))
-				batchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
+				newBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Active))
+				newBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Running))
+				newBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Completed))
+				newBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Succeeded))
+				newBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
 				// metrics -->
 
 				jobLogger.WithFields(log.Fields{
@@ -233,6 +240,16 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		}
 		// ----------------------------------------------------------- JOBS --!>
 	}
+
+	// swapping current registered metrics with updated copies
+	*batchPoolQuota = *newBatchPoolQuota
+	*batchDedicatedCoreQuota = *newBatchDedicatedCoreQuota
+	*batchPoolsDedicatedNodes = *newBatchPoolsDedicatedNodes
+	*batchJobsTasksActive = *newBatchJobsTasksActive
+	*batchJobsTasksRunning = *newBatchJobsTasksRunning
+	*batchJobsTasksCompleted = *newBatchJobsTasksCompleted
+	*batchJobsTasksSucceeded = *newBatchJobsTasksSucceeded
+	*batchJobsTasksFailed = *newBatchJobsTasksFailed
 
 	return err
 }
