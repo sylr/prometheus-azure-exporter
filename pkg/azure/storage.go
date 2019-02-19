@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 var (
@@ -76,7 +76,7 @@ func ObserveAzureStorageAPICallFailed(duration float64, labels ...string) {
 
 // ListSubscriptionStorageAccounts ...
 func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients, subscription *subscription.Model) (*[]storage.Account, error) {
-	c := tools.GetCache(5 * time.Minute)
+	c := cache.GetCache(5 * time.Minute)
 	cacheKey := fmt.Sprintf(cacheKeySubscriptionStorageAccounts, subscription.SubscriptionID)
 
 	contextLogger := log.WithFields(log.Fields{
@@ -120,7 +120,7 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 
 // ListStorageAccountContainers ...
 func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.ListContainerItem, error) {
-	c := tools.GetCache(5 * time.Minute)
+	c := cache.GetCache(5 * time.Minute)
 
 	accountDetails, _ := ParseResourceID(*account.ID)
 
@@ -174,7 +174,7 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 
 // ListStorageAccountKeys ...
 func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.AccountKey, error) {
-	c := tools.GetCache(5 * time.Minute)
+	c := cache.GetCache(5 * time.Minute)
 
 	accountDetails, _ := ParseResourceID(*account.ID)
 

@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/config"
 	"github.com/sylr/prometheus-azure-exporter/pkg/metrics"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 func setConfig() error {
@@ -64,7 +64,7 @@ func applyConfig(conf *config.PrometheusAzureExporterConfig) error {
 
 	// Turn on Noop caching
 	if config.CurrentConfig.NoCache {
-		tools.NoopCaching = true
+		cache.NoopCaching = true
 	}
 
 	// Update metrics functions interval

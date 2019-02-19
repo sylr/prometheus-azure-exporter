@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/sync"
 )
 
 const (
@@ -83,8 +83,8 @@ func UpdateStorageMetrics(ctx context.Context) error {
 	}
 
 	// Create a bounded wait group which allows 10 concurrent processes for
-	// updating account's container's metrics.
-	wg := tools.NewBoundedWaitGroup(10)
+	// updating account's containers' metrics.
+	wg := sync.NewBoundedWaitGroup(10)
 
 	// Loop over storage accounts.
 	for accountKey := range *storageAccounts {
@@ -117,7 +117,7 @@ func UpdateStorageMetrics(ctx context.Context) error {
 			// reach wg.Wait() before wg.Add(1) is hit if it is in the goroutine.
 			wg.Add(1)
 
-			go func(wg *tools.BoundedWaitGroup, subscription *subscription.Model, account *storage.Account, container *storage.ListContainerItem, walker *azure.StorageAccountMetrics) {
+			go func(wg *sync.BoundedWaitGroup, subscription *subscription.Model, account *storage.Account, container *storage.ListContainerItem, walker *azure.StorageAccountMetrics) {
 				accountLogger.Debugf("Start updating container: %s", *container.Name)
 
 				t0 := time.Now()

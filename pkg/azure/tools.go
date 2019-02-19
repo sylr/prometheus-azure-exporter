@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	cache             = tools.GetCache(1 * time.Hour)
+	c                 = cache.GetCache(1 * time.Hour)
 	resourceIDPattern = regexp.MustCompile(resourceIDPatternText)
 )
 
@@ -33,7 +33,7 @@ type ResourceDetails struct {
 func ParseResourceID(resourceID string) (*ResourceDetails, error) {
 	cacheKey := fmt.Sprintf(cacheKeyResourceID, resourceID)
 
-	if cdetails, ok := cache.Get(cacheKey); ok {
+	if cdetails, ok := c.Get(cacheKey); ok {
 		if details, ok := cdetails.(*ResourceDetails); ok {
 			return details, nil
 		}
@@ -56,7 +56,7 @@ func ParseResourceID(resourceID string) (*ResourceDetails, error) {
 		Name:           resourceName,
 	}
 
-	cache.SetDefault(cacheKey, details)
+	c.SetDefault(cacheKey, details)
 
 	return details, nil
 }

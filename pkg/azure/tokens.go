@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 
 // GetStorageToken ...
 func GetStorageToken(ctx context.Context) (*adal.ServicePrincipalToken, error) {
-	c := tools.GetCache(1 * time.Hour)
+	c := cache.GetCache(1 * time.Hour)
 	cacheKey := cacheKeyStorageToken
 
 	contextLogger := log.WithFields(log.Fields{

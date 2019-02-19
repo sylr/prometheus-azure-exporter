@@ -6,12 +6,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 // GetSubscription returns a subscription
 func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID string) (*subscription.Model, error) {
-	c := tools.GetCache(1 * time.Hour)
+	c := cache.GetCache(1 * time.Hour)
 
 	if csub, ok := c.Get(subscriptionID); ok {
 		if sub, ok := csub.(*subscription.Model); !ok {
