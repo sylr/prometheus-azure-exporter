@@ -1,4 +1,4 @@
-package tools
+package sync
 
 // Orininal code from: https://play.golang.org/p/ChjP2wpvyt
 
@@ -20,9 +20,12 @@ func NewBoundedWaitGroup(cap int) BoundedWaitGroup {
 
 // Add ...
 func (bwg *BoundedWaitGroup) Add(delta int) {
+	// Delta < 0
 	for i := 0; i > delta; i-- {
 		<-bwg.ch
 	}
+
+	// Delta > 0
 	for i := 0; i < delta; i++ {
 		bwg.ch <- struct{}{}
 	}

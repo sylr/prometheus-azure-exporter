@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools"
+	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 
 // GetResourceGroup returns a Group
 func GetResourceGroup(ctx context.Context, clients *AzureClients, subscription *subscription.Model, name string) (*resources.Group, error) {
-	c := tools.GetCache(1 * time.Hour)
+	c := cache.GetCache(1 * time.Hour)
 	cacheKey := fmt.Sprintf(cacheKeyResourceGroup, *subscription.DisplayName, name)
 
 	if cgroup, ok := c.Get(cacheKey); ok {
