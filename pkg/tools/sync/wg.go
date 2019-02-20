@@ -6,6 +6,23 @@ import (
 	"sync"
 )
 
+// Waiter interface
+type Waiter interface {
+	Add(int)
+	Done()
+	Wait()
+}
+
+// NewWaiter returns a Waiter, a sync.WaitGroup if cap i <= 0, a BoundedWaitGroup otherwise.
+func NewWaiter(cap int) Waiter {
+	if cap > 0 {
+		wg := NewBoundedWaitGroup(cap)
+		return &wg
+	} else {
+		return &sync.WaitGroup{}
+	}
+}
+
 // BoundedWaitGroup is a wait group which has a limit boundary meaning it will
 // wait for Done() to be called before releasing Add(n) if the limit has been reached
 type BoundedWaitGroup struct {
