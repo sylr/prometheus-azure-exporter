@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine3.8 as builder
+FROM golang:1.12-alpine3.9 as builder
 
 ADD . $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
@@ -10,7 +10,7 @@ RUN git update-index --refresh; make install
 
 # -----------------------------------------------------------------------------
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 WORKDIR /usr/local/bin
 RUN apk --no-cache add ca-certificates
