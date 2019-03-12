@@ -15,7 +15,7 @@ require (
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
 	github.com/prometheus/client_golang v0.9.2
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.3.0
+	github.com/sirupsen/logrus v1.4.0
 	go.opencensus.io v0.18.0 // indirect
 	golang.org/x/crypto v0.0.0-20181015023909-0c41d7ab0a0e // indirect
 	golang.org/x/sys v0.0.0-20181021155630-eda9bb28ed51 // indirect
