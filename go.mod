@@ -13,7 +13,7 @@ require (
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
-	github.com/prometheus/client_golang v0.9.2
+	github.com/prometheus/client_golang v0.9.3
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.1
 	go.opencensus.io v0.18.0 // indirect
