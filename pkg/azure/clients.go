@@ -2,6 +2,7 @@ package azure
 
 import (
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
@@ -162,7 +163,7 @@ func (azc *AzureClients) GetBatchJobClient(accountEndpoint string) (*batch.JobCl
 	client := batch.NewJobClientWithBaseURI("https://" + accountEndpoint)
 	azc.batchJobClients[accountEndpoint] = &client
 	azc.batchJobClients[accountEndpoint].Authorizer = auth
-	//azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
+	// azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
 
 	return azc.batchJobClients[accountEndpoint], nil
 }
@@ -185,7 +186,7 @@ func (azc *AzureClients) GetBatchJobClientWithResource(accountEndpoint string, r
 	client := batch.NewJobClientWithBaseURI("https://" + accountEndpoint)
 	azc.batchJobClients[accountEndpoint+resource] = &client
 	azc.batchJobClients[accountEndpoint+resource].Authorizer = auth
-	//azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
+	// azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
 
 	return azc.batchJobClients[accountEndpoint+resource], nil
 }
@@ -208,7 +209,7 @@ func (azc *AzureClients) GetApplicationsClient(tenantID string) (*graph.Applicat
 	client := graph.NewApplicationsClient(tenantID)
 	azc.applicationsClients[tenantID] = &client
 	azc.applicationsClients[tenantID].Authorizer = auth
-	//azc.applicationsClients[tenantID].ResponseInspector = respondInspectDebug()
+	// azc.applicationsClients[tenantID].ResponseInspector = respondInspectDebug()
 
 	return azc.applicationsClients[tenantID], nil
 }
@@ -333,7 +334,8 @@ func (azc *AzureClients) GetBlobContainersClientWithResource(subscriptionID stri
 func respondInspect(subscription string) autorest.RespondDecorator {
 	return func(r autorest.Responder) autorest.Responder {
 		return autorest.ResponderFunc(func(resp *http.Response) error {
-			SetReadRateLimitRemaining(subscription, resp)
+			SetReadRateLimitRemaining(os.Getenv("AZURE_TENANT_ID"), subscription, resp)
+			SetWriteRateLimitRemaining(os.Getenv("AZURE_TENANT_ID"), subscription, resp)
 			return r.Respond(resp)
 		})
 	}

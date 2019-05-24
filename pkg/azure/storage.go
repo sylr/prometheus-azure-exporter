@@ -174,7 +174,7 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 
 // ListStorageAccountKeys ...
 func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account) (*[]storage.AccountKey, error) {
-	c := cache.GetCache(5 * time.Minute)
+	c := cache.GetCache(30 * time.Second)
 
 	accountDetails, _ := ParseResourceID(*account.ID)
 
