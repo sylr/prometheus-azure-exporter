@@ -11,7 +11,20 @@ import (
 )
 
 var (
-	batchPoolQuota = prometheus.NewGaugeVec(
+	batchPoolQuota           = newBatchPoolQuota()
+	batchDedicatedCoreQuota  = newBatchDedicatedCoreQuota()
+	batchPoolsDedicatedNodes = newBatchPoolsDedicatedNodes()
+	batchJobsTasksActive     = newBatchJobsTasksActive()
+	batchJobsTasksRunning    = newBatchJobsTasksRunning()
+	batchJobsTasksCompleted  = newBatchJobsTasksCompleted()
+	batchJobsTasksSucceeded  = newBatchJobsTasksSucceeded()
+	batchJobsTasksFailed     = newBatchJobsTasksFailed()
+)
+
+// -----------------------------------------------------------------------------
+
+func newBatchPoolQuota() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -20,8 +33,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account"},
 	)
+}
 
-	batchDedicatedCoreQuota = prometheus.NewGaugeVec(
+func newBatchDedicatedCoreQuota() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -30,8 +45,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account"},
 	)
+}
 
-	batchPoolsDedicatedNodes = prometheus.NewGaugeVec(
+func newBatchPoolsDedicatedNodes() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -40,8 +57,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account", "pool"},
 	)
+}
 
-	batchJobsTasksActive = prometheus.NewGaugeVec(
+func newBatchJobsTasksActive() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -50,8 +69,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
+}
 
-	batchJobsTasksRunning = prometheus.NewGaugeVec(
+func newBatchJobsTasksRunning() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -60,8 +81,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
+}
 
-	batchJobsTasksCompleted = prometheus.NewCounterVec(
+func newBatchJobsTasksCompleted() *prometheus.CounterVec {
+	return prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -70,8 +93,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
+}
 
-	batchJobsTasksSucceeded = prometheus.NewCounterVec(
+func newBatchJobsTasksSucceeded() *prometheus.CounterVec {
+	return prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -80,8 +105,10 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
+}
 
-	batchJobsTasksFailed = prometheus.NewCounterVec(
+func newBatchJobsTasksFailed() *prometheus.CounterVec {
+	return prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
@@ -90,7 +117,9 @@ var (
 		},
 		[]string{"subscription", "resource_group", "account", "job_id", "job_name"},
 	)
-)
+}
+
+// -----------------------------------------------------------------------------
 
 func init() {
 	prometheus.MustRegister(batchPoolQuota)
@@ -131,25 +160,15 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		return err
 	}
 
-	// Create new metric vectors out of current ones
-	newBatchPoolQuota := batchPoolQuota
-	newBatchDedicatedCoreQuota := batchDedicatedCoreQuota
-	newBatchPoolsDedicatedNodes := batchPoolsDedicatedNodes
-	newBatchJobsTasksActive := batchJobsTasksActive
-	newBatchJobsTasksRunning := batchJobsTasksRunning
-	newBatchJobsTasksCompleted := batchJobsTasksCompleted
-	newBatchJobsTasksSucceeded := batchJobsTasksSucceeded
-	newBatchJobsTasksFailed := batchJobsTasksFailed
-
-	// Reset the new metric vectors
-	newBatchPoolQuota.Reset()
-	newBatchDedicatedCoreQuota.Reset()
-	newBatchPoolsDedicatedNodes.Reset()
-	newBatchJobsTasksActive.Reset()
-	newBatchJobsTasksRunning.Reset()
-	newBatchJobsTasksCompleted.Reset()
-	newBatchJobsTasksSucceeded.Reset()
-	newBatchJobsTasksFailed.Reset()
+	// Create new metric vectors
+	nextBatchPoolQuota := newBatchPoolQuota()
+	nextBatchDedicatedCoreQuota := newBatchDedicatedCoreQuota()
+	nextBatchPoolsDedicatedNodes := newBatchPoolsDedicatedNodes()
+	nextBatchJobsTasksActive := newBatchJobsTasksActive()
+	nextBatchJobsTasksRunning := newBatchJobsTasksRunning()
+	nextBatchJobsTasksCompleted := newBatchJobsTasksCompleted()
+	nextBatchJobsTasksSucceeded := newBatchJobsTasksSucceeded()
+	nextBatchJobsTasksFailed := newBatchJobsTasksFailed()
 
 	for _, account := range *batchAccounts {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
@@ -167,8 +186,8 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		}
 
 		// <!-- metrics
-		newBatchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
-		newBatchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
+		nextBatchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
+		nextBatchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
 		// metrics -->
 
 		// <!-- POOLS ----------------------------------------------------------
@@ -179,7 +198,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		} else {
 			for _, pool := range pools {
 				// <!-- metrics
-				newBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+				nextBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
 				// metrics -->
 
 				accountLogger.WithFields(log.Fields{
@@ -219,11 +238,11 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				}
 
 				// <!-- metrics
-				newBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Active))
-				newBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Running))
-				newBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Completed))
-				newBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Succeeded))
-				newBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
+				nextBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Active))
+				nextBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Running))
+				nextBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Completed))
+				nextBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Succeeded))
+				nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
 				// metrics -->
 
 				jobLogger.WithFields(log.Fields{
@@ -242,14 +261,14 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	}
 
 	// swapping current registered metrics with updated copies
-	*batchPoolQuota = *newBatchPoolQuota
-	*batchDedicatedCoreQuota = *newBatchDedicatedCoreQuota
-	*batchPoolsDedicatedNodes = *newBatchPoolsDedicatedNodes
-	*batchJobsTasksActive = *newBatchJobsTasksActive
-	*batchJobsTasksRunning = *newBatchJobsTasksRunning
-	*batchJobsTasksCompleted = *newBatchJobsTasksCompleted
-	*batchJobsTasksSucceeded = *newBatchJobsTasksSucceeded
-	*batchJobsTasksFailed = *newBatchJobsTasksFailed
+	*batchPoolQuota = *nextBatchPoolQuota
+	*batchDedicatedCoreQuota = *nextBatchDedicatedCoreQuota
+	*batchPoolsDedicatedNodes = *nextBatchPoolsDedicatedNodes
+	*batchJobsTasksActive = *nextBatchJobsTasksActive
+	*batchJobsTasksRunning = *nextBatchJobsTasksRunning
+	*batchJobsTasksCompleted = *nextBatchJobsTasksCompleted
+	*batchJobsTasksSucceeded = *nextBatchJobsTasksSucceeded
+	*batchJobsTasksFailed = *nextBatchJobsTasksFailed
 
 	return err
 }
