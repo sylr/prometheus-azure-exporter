@@ -11,7 +11,18 @@ import (
 )
 
 var (
-	graphApplicationKeyExpire = prometheus.NewGaugeVec(
+	nameSanitationRegexp = regexp.MustCompile("[^a-zA-z0-9_./*-+ ]")
+)
+
+var (
+	graphApplicationKeyExpire      = newGraphApplicationKeyExpire()
+	graphApplicationPasswordExpire = newGraphApplicationPasswordExpire()
+)
+
+// -----------------------------------------------------------------------------
+
+func newGraphApplicationKeyExpire() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "graph",
@@ -20,8 +31,10 @@ var (
 		},
 		[]string{"application", "key"},
 	)
+}
 
-	graphApplicationPasswordExpire = prometheus.NewGaugeVec(
+func newGraphApplicationPasswordExpire() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "graph",
@@ -30,11 +43,9 @@ var (
 		},
 		[]string{"application", "password"},
 	)
-)
+}
 
-var (
-	nameSanitationRegexp = regexp.MustCompile("[^a-zA-z0-9_./*-+ ]")
-)
+// -----------------------------------------------------------------------------
 
 func init() {
 	prometheus.MustRegister(graphApplicationKeyExpire)
@@ -54,13 +65,9 @@ func UpdateGraphMetrics(ctx context.Context) error {
 		"_func": "UpdateGraphMetrics",
 	})
 
-	// Create new metric vectors out of current ones
-	newGraphApplicationKeyExpire := graphApplicationKeyExpire
-	newGraphApplicationPasswordExpire := graphApplicationPasswordExpire
-
-	// Reset the new metric vectors
-	newGraphApplicationKeyExpire.Reset()
-	newGraphApplicationPasswordExpire.Reset()
+	// Create new metric vectors
+	nextGraphApplicationKeyExpire := newGraphApplicationKeyExpire()
+	nextGraphApplicationPasswordExpire := newGraphApplicationPasswordExpire()
 
 	// <!-- APPLICATIONS -------------------------------------------------------
 	azureClients := azure.NewAzureClients()
@@ -81,7 +88,7 @@ func UpdateGraphMetrics(ctx context.Context) error {
 				decodedName = *key.KeyID
 			}
 
-			newGraphApplicationKeyExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(key.EndDate.Unix()))
+			nextGraphApplicationKeyExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(key.EndDate.Unix()))
 		}
 
 		for _, password := range *app.PasswordCredentials {
@@ -93,14 +100,14 @@ func UpdateGraphMetrics(ctx context.Context) error {
 				decodedName = *password.KeyID
 			}
 
-			newGraphApplicationPasswordExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(password.EndDate.Unix()))
+			nextGraphApplicationPasswordExpire.WithLabelValues(*app.DisplayName, decodedName).Set(float64(password.EndDate.Unix()))
 		}
 	}
 	// -- APPLICATIONS -------------------------------------------------------!>
 
 	// swapping current registered metrics with updated copies
-	*graphApplicationKeyExpire = *newGraphApplicationKeyExpire
-	*graphApplicationPasswordExpire = *newGraphApplicationPasswordExpire
+	*graphApplicationKeyExpire = *nextGraphApplicationKeyExpire
+	*graphApplicationPasswordExpire = *nextGraphApplicationPasswordExpire
 
 	return err
 }
