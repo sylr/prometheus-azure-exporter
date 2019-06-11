@@ -12,7 +12,7 @@ require (
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
-	github.com/prometheus/client_golang v0.9.3
+	github.com/prometheus/client_golang v0.9.4
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	go.opencensus.io v0.18.0 // indirect
