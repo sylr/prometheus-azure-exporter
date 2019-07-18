@@ -3,6 +3,7 @@ prometheus-azure-exporter
 
 [![Build Status](https://travis-ci.com/sylr/prometheus-azure-exporter.svg?branch=master)](https://travis-ci.com/sylr/prometheus-azure-exporter)
 [![Docker Repository on Quay](https://quay.io/repository/sylr/prometheus-azure-exporter/status "Docker Repository on Quay")](https://quay.io/repository/sylr/prometheus-azure-exporter)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsylr%2Fprometheus-azure-exporter.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsylr%2Fprometheus-azure-exporter?ref=badge_shield)
 
 
 This is a daemon which calls Azure API to fetch resources metrics and expose them
@@ -61,3 +62,6 @@ Azure resources
 | Storage                 | azure_storage_blob_size_bytes_bucket            | subscription, resource_group, account, container
 |                         | azure_storage_blob_size_bytes_sum               | subscription, resource_group, account, container
 |                         | azure_storage_blob_size_bytes_count             | subscription, resource_group, account, container
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsylr%2Fprometheus-azure-exporter.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsylr%2Fprometheus-azure-exporter?ref=badge_large)
