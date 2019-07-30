@@ -88,13 +88,6 @@ func UpdateStorageMetrics(ctx context.Context) error {
 
 	// Loop over storage accounts.
 	for accountKey := range *storageAccounts {
-		// Listing Storage account keys is a WRITE operation for Azure.
-		// We call this once in order to retrieve the remaining number of write
-		// operations allowed by Azure.
-		if accountKey == 0 {
-			azure.ListStorageAccountKeys(ctx, azureClients, sub, &(*storageAccounts)[accountKey])
-		}
-
 		accountProperties, _ := azure.ParseResourceID(*(*storageAccounts)[accountKey].ID)
 
 		// logger
