@@ -7,7 +7,7 @@ language: go
 dist: xenial
 
 go:
-- "1.12.x"
+- "1.13.x"
 
 go_import_path: github.com/sylr/prometheus-azure-exporter
 
@@ -30,15 +30,9 @@ before_install:
 - ssh-add $GITHUB_SSH_KEY
 
 script:
-- contrib/dependabot-travis.sh git-checkout
-- contrib/dependabot-travis.sh vendor
 - gofmt -d -e -l . && git diff --quiet
-- go mod vendor && git diff --exit-code
 - go test -v ./...
 - make build
 - ./prometheus-azure-exporter --version
 - ./prometheus-azure-exporter --help
 - docker build .
-
-after_success:
-- contrib/dependabot-travis.sh push-back

@@ -1,5 +1,7 @@
 module github.com/sylr/prometheus-azure-exporter
 
+go 1.13
+
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go v24.1.0+incompatible
