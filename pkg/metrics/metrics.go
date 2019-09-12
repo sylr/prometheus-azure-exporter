@@ -171,10 +171,10 @@ func UpdateMetrics(ctx context.Context) {
 				continue
 			}
 
-			ctx, f := context.WithCancel(ctx)
-			intervalCancelFunctions[interval] = f
-			go updateMetricsWithInterval(ctx, &wg, interval)
+			ctx, cancelFunc := context.WithCancel(ctx)
+			intervalCancelFunctions[interval] = cancelFunc
 
+			go updateMetricsWithInterval(ctx, &wg, interval)
 			wg.Add(1)
 		}
 		mutex.RUnlock()
@@ -186,8 +186,8 @@ func UpdateMetrics(ctx context.Context) {
 // CancelUpdateMetricsFunctions calls the contexts cancel() methods
 // of all interval processes.
 func CancelUpdateMetricsFunctions() {
-	for _, f := range intervalCancelFunctions {
-		f()
+	for _, cancelFunc := range intervalCancelFunctions {
+		cancelFunc()
 	}
 }
 
