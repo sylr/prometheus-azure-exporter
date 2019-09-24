@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.2.0 // indirect
-	github.com/Azure/azure-sdk-for-go v33.2.0+incompatible
+	github.com/Azure/azure-sdk-for-go v33.4.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.8.0
 	github.com/Azure/go-autorest v13.0.1+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.1
