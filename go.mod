@@ -24,7 +24,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190618222545-ea8f1a30c443 // indirect
 	google.golang.org/api v0.0.0-20181021000519-a2651947f503 // indirect
 	google.golang.org/genproto v0.0.0-20181016170114-94acd270e44e // indirect
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.3
 )
 
 replace (
