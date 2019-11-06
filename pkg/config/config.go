@@ -42,7 +42,7 @@ type PrometheusAzureExporterConfig struct {
 	AutoDiscoveryTag  string        `yaml:"autodiscovery_tag"  short:"t"   long:"autodiscovery-tag"    description:"If discovery mode set to Tagged we process Azure Resources with this tag set to True, If discovery mode set to All, resources with this tag set to False will be discarded" default:"prometheus_io_azure_exporter_discover"`
 
 	// Env vars used for Azure Authent, see
-	// https://github.com/Azure/go-autorest/blob/master/autorest/azure/auth/auth.go#L86-L94
+	// https://github.com/Azure/go-autorest/blob/v13.3.0/autorest/azure/auth/auth.go#L41-L51
 	AzureTenantID            string `env:"AZURE_TENANT_ID"              description:"Azure tenant id"`
 	AzureSubscriptionID      string `env:"AZURE_SUBSCRIPTION_ID"        description:"Azure subscription id"`
 	AzureClientID            string `env:"AZURE_CLIENT_ID"              description:"Azure client id"`
