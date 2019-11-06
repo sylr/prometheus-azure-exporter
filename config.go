@@ -77,7 +77,7 @@ func applyConfig(conf *config.PrometheusAzureExporterConfig) error {
 			metrics.UnregisterUpdateMetricsFunctions(v.Name)
 			needCancel = true
 		} else if interval != nil && *interval != v.Interval {
-			// Current interval set and different form new interval
+			// Current interval set and different from new interval
 			f := metrics.UnregisterUpdateMetricsFunctions(v.Name)
 			metrics.RegisterUpdateMetricsFunctionWithInterval(v.Name, f, v.Interval)
 			needCancel = true
