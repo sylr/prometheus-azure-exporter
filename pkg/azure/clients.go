@@ -5,8 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
-	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
+	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
@@ -25,6 +25,7 @@ type AzureClients struct {
 	batchAccountClients         map[string]*azurebatch.AccountClient
 	batchPoolClients            map[string]*azurebatch.PoolClient
 	batchJobClients             map[string]*batch.JobClient
+	batchComputeNodeClient      map[string]*batch.ComputeNodeClient
 	subscriptionsClients        map[string]*subscription.SubscriptionsClient
 	applicationsClients         map[string]*graph.ApplicationsClient
 	servicePrincipalsClients    map[string]*graph.ServicePrincipalsClient
@@ -41,6 +42,7 @@ func NewAzureClients() *AzureClients {
 		batchAccountClients:         make(map[string]*azurebatch.AccountClient),
 		batchPoolClients:            make(map[string]*azurebatch.PoolClient),
 		batchJobClients:             make(map[string]*batch.JobClient),
+		batchComputeNodeClient:      make(map[string]*batch.ComputeNodeClient),
 		subscriptionsClients:        make(map[string]*subscription.SubscriptionsClient),
 		applicationsClients:         make(map[string]*graph.ApplicationsClient),
 		servicePrincipalsClients:    make(map[string]*graph.ServicePrincipalsClient),
@@ -160,7 +162,7 @@ func (azc *AzureClients) GetBatchJobClient(accountEndpoint string) (*batch.JobCl
 		return nil, err
 	}
 
-	client := batch.NewJobClientWithBaseURI("https://" + accountEndpoint)
+	client := batch.NewJobClient("https://" + accountEndpoint)
 	azc.batchJobClients[accountEndpoint] = &client
 	azc.batchJobClients[accountEndpoint].Authorizer = auth
 	// azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
@@ -183,12 +185,58 @@ func (azc *AzureClients) GetBatchJobClientWithResource(accountEndpoint string, r
 		return nil, err
 	}
 
-	client := batch.NewJobClientWithBaseURI("https://" + accountEndpoint)
+	client := batch.NewJobClient("https://" + accountEndpoint)
 	azc.batchJobClients[accountEndpoint+resource] = &client
 	azc.batchJobClients[accountEndpoint+resource].Authorizer = auth
 	// azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
 
 	return azc.batchJobClients[accountEndpoint+resource], nil
+}
+
+// GetBatchComputeNodeClient get compute node client
+func (azc *AzureClients) GetBatchComputeNodeClient(accountEndpoint string) (*batch.ComputeNodeClient, error) {
+	if _, ok := azc.batchComputeNodeClient[accountEndpoint]; ok {
+		return azc.batchComputeNodeClient[accountEndpoint], nil
+	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
+	auth, err := GetBatchAuthorizer()
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := batch.NewComputeNodeClient("https://" + accountEndpoint)
+	azc.batchComputeNodeClient[accountEndpoint] = &client
+	azc.batchComputeNodeClient[accountEndpoint].Authorizer = auth
+	// azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
+
+	return azc.batchComputeNodeClient[accountEndpoint], nil
+}
+
+// GetBatchComputeNodeClientWithResource get compute node client with resource
+func (azc *AzureClients) GetBatchComputeNodeClientWithResource(accountEndpoint string, resource string) (*batch.ComputeNodeClient, error) {
+	if _, ok := azc.batchComputeNodeClient[accountEndpoint+resource]; ok {
+		return azc.batchComputeNodeClient[accountEndpoint+resource], nil
+	}
+
+	azc.mutex.Lock()
+	defer azc.mutex.Unlock()
+
+	auth, err := GetBatchAuthorizerWithResource(resource)
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := batch.NewComputeNodeClient("https://" + accountEndpoint)
+	azc.batchComputeNodeClient[accountEndpoint+resource] = &client
+	azc.batchComputeNodeClient[accountEndpoint+resource].Authorizer = auth
+	// azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
+
+	return azc.batchComputeNodeClient[accountEndpoint+resource], nil
 }
 
 // GetApplicationsClient get applications client

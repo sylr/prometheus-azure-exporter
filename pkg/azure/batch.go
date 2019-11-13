@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/2018-08-01.7.0/batch"
-	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
+	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -190,13 +190,12 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscripti
 	defer cancel()
 
 	client, err := clients.GetBatchJobClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
-
 	if err != nil {
 		return nil, err
 	}
 
 	t0 := time.Now()
-	jobs, err := client.List(ctx, "", "", "", nil, nil, nil, nil, nil)
+	cloudJobs, err := client.List(ctx, "", "", "", nil, nil, nil, nil, nil)
 	t1 := time.Since(t0).Seconds()
 
 	ObserveAzureAPICall(t1)
@@ -208,10 +207,24 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscripti
 		return nil, err
 	}
 
-	vals := jobs.Values()
-	c.SetDefault(cacheKey, vals)
+	jobs := make([]batch.CloudJob, 0)
 
-	return jobs.Values(), nil
+	for {
+		vals := cloudJobs.Values()
+		for _, val := range vals {
+			jobs = append(jobs, val)
+		}
+
+		if cloudJobs.NotDone() {
+			cloudJobs.Next()
+		} else {
+			break
+		}
+	}
+
+	c.SetDefault(cacheKey, jobs)
+
+	return jobs, nil
 }
 
 // GetBatchJobTaskCounts get job tasks metrics
@@ -240,4 +253,48 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, subscript
 	}
 
 	return &taskCounts, nil
+}
+
+// ListBatchComputeNodes get job tasks metrics
+func ListBatchComputeNodes(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account, pool *azurebatch.Pool) (*[]batch.ComputeNode, error) {
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	accountDetails, _ := ParseResourceID(*account.ID)
+	client, err := clients.GetBatchComputeNodeClientWithResource(*account.AccountEndpoint, "https://batch.core.windows.net/")
+	//client, err := clients.GetBatchComputeNodeClient(*account.AccountEndpoint)
+
+	if err != nil {
+		return nil, err
+	}
+
+	t0 := time.Now()
+	computeNodes, err := client.List(ctx, *pool.Name, "", "", nil, nil, nil, nil, nil)
+	t1 := time.Since(t0).Seconds()
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
+
+	if err != nil {
+		ObserveAzureAPICallFailed(t1)
+		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
+		return nil, err
+	}
+
+	nodes := make([]batch.ComputeNode, 0)
+
+	for {
+		vals := computeNodes.Values()
+		for _, val := range vals {
+			nodes = append(nodes, val)
+		}
+
+		if computeNodes.NotDone() {
+			computeNodes.Next()
+		} else {
+			break
+		}
+	}
+
+	return &nodes, nil
 }

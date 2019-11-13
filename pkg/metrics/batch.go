@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
@@ -14,6 +15,7 @@ var (
 	batchPoolQuota           = newBatchPoolQuota()
 	batchDedicatedCoreQuota  = newBatchDedicatedCoreQuota()
 	batchPoolsDedicatedNodes = newBatchPoolsDedicatedNodes()
+	batchPoolsNodesStates    = newBatchPoolsNodesStates()
 	batchJobsTasksActive     = newBatchJobsTasksActive()
 	batchJobsTasksRunning    = newBatchJobsTasksRunning()
 	batchJobsTasksCompleted  = newBatchJobsTasksCompleted()
@@ -56,6 +58,18 @@ func newBatchPoolsDedicatedNodes() *prometheus.GaugeVec {
 			Help:      "Number of dedicated nodes for batch pool",
 		},
 		[]string{"subscription", "resource_group", "account", "pool"},
+	)
+}
+
+func newBatchPoolsNodesStates() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "pool_node_state",
+			Help:      "Number of nodes for each states",
+		},
+		[]string{"subscription", "resource_group", "account", "pool", "state"},
 	)
 }
 
@@ -125,6 +139,7 @@ func init() {
 	prometheus.MustRegister(batchPoolQuota)
 	prometheus.MustRegister(batchDedicatedCoreQuota)
 	prometheus.MustRegister(batchPoolsDedicatedNodes)
+	prometheus.MustRegister(batchPoolsNodesStates)
 	prometheus.MustRegister(batchJobsTasksActive)
 	prometheus.MustRegister(batchJobsTasksRunning)
 	prometheus.MustRegister(batchJobsTasksCompleted)
@@ -164,6 +179,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	nextBatchPoolQuota := newBatchPoolQuota()
 	nextBatchDedicatedCoreQuota := newBatchDedicatedCoreQuota()
 	nextBatchPoolsDedicatedNodes := newBatchPoolsDedicatedNodes()
+	nextBatchPoolsNodesStates := newBatchPoolsNodesStates()
 	nextBatchJobsTasksActive := newBatchJobsTasksActive()
 	nextBatchJobsTasksRunning := newBatchJobsTasksRunning()
 	nextBatchJobsTasksCompleted := newBatchJobsTasksCompleted()
@@ -198,8 +214,22 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		} else {
 			for _, pool := range pools {
 				// <!-- metrics
+				nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(batch.Idle)).Set(0)
+				nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(batch.Running)).Set(0)
 				nextBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
 				// metrics -->
+
+				nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, &account, &pool)
+
+				if err != nil {
+					accountLogger.WithFields(log.Fields{}).Error(err.Error())
+				} else {
+					for _, node := range *nodes {
+						// <!-- metrics
+						nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(node.State)).Inc()
+						// metrics -->
+					}
+				}
 
 				accountLogger.WithFields(log.Fields{
 					"metric":          "pool",
@@ -264,6 +294,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchPoolQuota = *nextBatchPoolQuota
 	*batchDedicatedCoreQuota = *nextBatchDedicatedCoreQuota
 	*batchPoolsDedicatedNodes = *nextBatchPoolsDedicatedNodes
+	*batchPoolsNodesStates = *nextBatchPoolsNodesStates
 	*batchJobsTasksActive = *nextBatchJobsTasksActive
 	*batchJobsTasksRunning = *nextBatchJobsTasksRunning
 	*batchJobsTasksCompleted = *nextBatchJobsTasksCompleted
