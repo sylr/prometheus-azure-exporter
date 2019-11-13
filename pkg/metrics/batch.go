@@ -21,6 +21,8 @@ var (
 	batchJobsTasksCompleted  = newBatchJobsTasksCompleted()
 	batchJobsTasksSucceeded  = newBatchJobsTasksSucceeded()
 	batchJobsTasksFailed     = newBatchJobsTasksFailed()
+	batchJobsPool            = newBatchJobsPool()
+	batchJobsStates          = newBatchJobsStates()
 )
 
 // -----------------------------------------------------------------------------
@@ -133,6 +135,30 @@ func newBatchJobsTasksFailed() *prometheus.CounterVec {
 	)
 }
 
+func newBatchJobsPool() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "job_pool",
+			Help:      "Associative vector between job and pool",
+		},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name", "pool"},
+	)
+}
+
+func newBatchJobsStates() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "job_state",
+			Help:      "State of job ",
+		},
+		[]string{"subscription", "resource_group", "account", "job_id", "job_name", "state"},
+	)
+}
+
 // -----------------------------------------------------------------------------
 
 func init() {
@@ -145,6 +171,8 @@ func init() {
 	prometheus.MustRegister(batchJobsTasksCompleted)
 	prometheus.MustRegister(batchJobsTasksSucceeded)
 	prometheus.MustRegister(batchJobsTasksFailed)
+	prometheus.MustRegister(batchJobsPool)
+	prometheus.MustRegister(batchJobsStates)
 
 	if GetUpdateMetricsFunctionInterval("batch") == nil {
 		RegisterUpdateMetricsFunction("batch", UpdateBatchMetrics)
@@ -185,6 +213,8 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	nextBatchJobsTasksCompleted := newBatchJobsTasksCompleted()
 	nextBatchJobsTasksSucceeded := newBatchJobsTasksSucceeded()
 	nextBatchJobsTasksFailed := newBatchJobsTasksFailed()
+	nextBatchJobsPool := newBatchJobsPool()
+	nextBatchJobsStates := newBatchJobsStates()
 
 	for _, account := range *batchAccounts {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
@@ -273,6 +303,11 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				nextBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Completed))
 				nextBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Succeeded))
 				nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName).Set(float64(*taskCounts.Failed))
+				nextBatchJobsPool.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, *job.PoolInfo.PoolID).Set(1)
+
+				// We init JobStateActive state to 0 to be sure to have a value for each jobs so we can have alerts on the state value.
+				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, string(batch.JobStateActive)).Set(0)
+				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, string(job.State)).Set(1)
 				// metrics -->
 
 				jobLogger.WithFields(log.Fields{
@@ -300,6 +335,8 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchJobsTasksCompleted = *nextBatchJobsTasksCompleted
 	*batchJobsTasksSucceeded = *nextBatchJobsTasksSucceeded
 	*batchJobsTasksFailed = *nextBatchJobsTasksFailed
+	*batchJobsPool = *nextBatchJobsPool
+	*batchJobsStates = *nextBatchJobsStates
 
 	return err
 }
