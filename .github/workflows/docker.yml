@@ -1,0 +1,18 @@
+name: Docker Image
+
+on: [release]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)
+    - name: Login to GitHub Docker Registry
+      run: docker login docker.pkg.github.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      env:
+        DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
+    - name: Push the Docker image
+      run: docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)
