@@ -16,6 +16,6 @@ go-mod-tidy:
 	go mod tidy
 
 verify-go-mod: go-mod-download
-	git diff --quiet go.mod go.sum
+	git diff --quiet go.mod go.sum || git diff --exit-code go.mod go.sum
 
 .PHONY: build test install go-mod-download go-mod-tidy verify-go-mod
