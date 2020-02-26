@@ -43,12 +43,23 @@ var (
 		},
 		[]string{"function"},
 	)
+
+	updateMetricsFunctionExceedingIntervalCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "azure_exporter",
+			Subsystem: "update_metrics_function",
+			Name:      "exceeding_interval_total",
+			Help:      "Counter tracing functions that take more time than the interval they are registered with",
+		},
+		[]string{"function", "interval"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(updateMetricsFunctionDurationHistogram)
 	prometheus.MustRegister(updateMetricsFunctionLastDurationGauge)
 	prometheus.MustRegister(updateMetricsFunctionIntervalDurationGauge)
+	prometheus.MustRegister(updateMetricsFunctionExceedingIntervalCounter)
 }
 
 var (
@@ -239,7 +250,7 @@ func updateMetricsWithInterval(ctx context.Context, wg *sync.WaitGroup, interval
 
 				ctx = context.WithValue(ctx, "id", id)
 
-				functionLogger.Infof("Start update metrics function")
+				functionLogger.Debugf("Start update metrics function")
 
 				// Run update metrics function
 				t0 := time.Now()
@@ -252,12 +263,13 @@ func updateMetricsWithInterval(ctx context.Context, wg *sync.WaitGroup, interval
 					updateMetricsFunctionLastDurationGauge.WithLabelValues(updateMetricsFuncName).Set(t1.Seconds())
 				}
 
-				functionLogger.Infof("End update metrics function in %v", t1.Round(time.Millisecond))
+				functionLogger.Debugf("End update metrics function in %v", t1.Round(time.Millisecond))
 
 				// Warning if update metrics function takes more time than the
 				// interval it is registered with.
 				if t1 > interval {
-					processLogger.Warnf("Function %s takes %v, you should register this function with a greater interval", updateMetricsFuncName, t1.Round(time.Millisecond))
+					updateMetricsFunctionExceedingIntervalCounter.WithLabelValues(updateMetricsFuncName, interval.String()).Inc()
+					processLogger.Warnf("Function `%s` took %v, you should register this function with a greater interval", updateMetricsFuncName, t1.Round(time.Millisecond))
 				}
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
 		}
