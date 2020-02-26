@@ -10,11 +10,10 @@ RUN git update-index --refresh; make install
 
 # -----------------------------------------------------------------------------
 
-FROM alpine:3.11
+FROM debian:buster-slim
 
 WORKDIR /usr/local/bin
-RUN apk --no-cache add ca-certificates
-RUN apk update && apk upgrade && apk add --no-cache bash curl
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y bash curl
 COPY --from=builder "/go/bin/prometheus-azure-exporter" .
 
 ENTRYPOINT ["/usr/local/bin/prometheus-azure-exporter"]
