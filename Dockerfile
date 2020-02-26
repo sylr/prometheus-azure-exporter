@@ -1,16 +1,16 @@
-FROM golang:1.13-alpine3.10 as builder
+FROM golang:1.14 as builder
+
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y build-essential git
 
 ADD . $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
-
-RUN apk update && apk upgrade && apk add --no-cache alpine-sdk
 
 RUN uname -a && go version
 RUN git update-index --refresh; make install
 
 # -----------------------------------------------------------------------------
 
-FROM alpine:3.10
+FROM alpine:3.11
 
 WORKDIR /usr/local/bin
 RUN apk --no-cache add ca-certificates
