@@ -1,0 +1,6 @@
+.idea
+.vscode
+prometheus-azure-exporter
+prometheus-azure-exporter.exe
+debug
+__debug_bin
