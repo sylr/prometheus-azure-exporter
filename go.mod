@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/Azure/azure-pipeline-go v0.2.2 // indirect
-	github.com/Azure/azure-sdk-for-go v33.4.0+incompatible
+	github.com/Azure/azure-sdk-for-go v40.0.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.8.0
 	github.com/Azure/go-autorest/autorest v0.10.0
 	github.com/Azure/go-autorest/autorest/adal v0.8.2
@@ -12,16 +12,18 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/mattn/go-ieproxy v0.0.0-20200203040449-2dbc853185d9 // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/procfs v0.0.10 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
-	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d // indirect
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
+	golang.org/x/sys v0.0.0-20200302083256-062a44052db1 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )
 
