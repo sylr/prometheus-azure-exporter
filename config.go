@@ -102,6 +102,11 @@ func watchConfigFile() {
 	})
 
 	watcher, err := fsnotify.NewWatcher()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = watcher.Add(config.CurrentConfig.ConfigFile)
 
 	if err != nil {

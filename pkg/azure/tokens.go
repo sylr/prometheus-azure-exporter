@@ -59,7 +59,11 @@ func GetStorageToken(ctx context.Context) (*adal.ServicePrincipalToken, error) {
 	}
 
 	token.SetAutoRefresh(true)
-	token.Refresh()
+	err = token.Refresh()
+
+	if err != nil {
+		return nil, err
+	}
 
 	c.SetDefault(cacheKey, token)
 
