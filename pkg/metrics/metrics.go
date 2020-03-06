@@ -285,7 +285,6 @@ func updateMetricsWithInterval(ctx context.Context, wg *sync.WaitGroup, interval
 
 done:
 	wg.Done()
-	return
 }
 
 // processHash generates a hash based on time and salt to be used

@@ -15,10 +15,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	mutex = sync.RWMutex{}
-)
-
 // AzureClients Collection of Azure clients
 type AzureClients struct {
 	mutex                       sync.RWMutex

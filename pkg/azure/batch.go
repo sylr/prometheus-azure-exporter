@@ -13,7 +13,7 @@ import (
 	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
-var (
+const (
 	cacheKeySubscriptionBatchAccounts     = `sub-%s-batch-accounts`
 	cacheKeySubscriptionBatchAccountPools = `sub-%s-batch-account-%s-pools`
 	cacheKeySubscriptionBatchAccountJobs  = `sub-%s-batch-account-%s-jobs`
@@ -210,13 +210,14 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscripti
 	jobs := make([]batch.CloudJob, 0)
 
 	for {
-		vals := cloudJobs.Values()
-		for _, val := range vals {
-			jobs = append(jobs, val)
-		}
+		jobs = append(jobs, cloudJobs.Values()...)
 
 		if cloudJobs.NotDone() {
-			cloudJobs.Next()
+			err := cloudJobs.Next()
+
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			break
 		}
@@ -284,13 +285,14 @@ func ListBatchComputeNodes(ctx context.Context, clients *AzureClients, subscript
 	nodes := make([]batch.ComputeNode, 0)
 
 	for {
-		vals := computeNodes.Values()
-		for _, val := range vals {
-			nodes = append(nodes, val)
-		}
+		nodes = append(nodes, computeNodes.Values()...)
 
 		if computeNodes.NotDone() {
-			computeNodes.Next()
+			err := computeNodes.Next()
+
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			break
 		}
