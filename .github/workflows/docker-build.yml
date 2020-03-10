@@ -1,0 +1,29 @@
+name: Docker build
+on: [push, pull_request]
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.14
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.14
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Fetch tags
+      run: |
+        git fetch --unshallow origin +refs/tags/*:refs/tags/*
+        git update-index --refresh
+        git describe --tags
+
+    - name: Build debian based docker image
+      run: docker build . -f Dockerfile -t prometheus-azure-exporter:$(git describe --tag)-debian
+
+    - name: Docker scratch based docker image
+      run: docker build . -f scratch.Dockerfile -t prometheus-azure-exporter:$(git describe --tag)-scratch
+
+    - run: docker images
