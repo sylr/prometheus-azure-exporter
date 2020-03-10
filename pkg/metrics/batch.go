@@ -16,6 +16,7 @@ var (
 	batchDedicatedCoreQuota  = newBatchDedicatedCoreQuota()
 	batchPoolsDedicatedNodes = newBatchPoolsDedicatedNodes()
 	batchPoolsNodesStates    = newBatchPoolsNodesStates()
+	batchPoolsMetadata       = newBatchPoolsMetadata()
 	batchJobsTasksActive     = newBatchJobsTasksActive()
 	batchJobsTasksRunning    = newBatchJobsTasksRunning()
 	batchJobsTasksCompleted  = newBatchJobsTasksCompleted()
@@ -23,6 +24,7 @@ var (
 	batchJobsTasksFailed     = newBatchJobsTasksFailed()
 	batchJobsInfo            = newBatchJobsInfo()
 	batchJobsStates          = newBatchJobsStates()
+	batchJobsMetadata        = newBatchJobsMetadata()
 )
 
 // -----------------------------------------------------------------------------
@@ -72,6 +74,18 @@ func newBatchPoolsNodesStates() *prometheus.GaugeVec {
 			Help:      "Number of nodes for each states",
 		},
 		[]string{"subscription", "resource_group", "account", "pool", "state"},
+	)
+}
+
+func newBatchPoolsMetadata() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "pool_metadata",
+			Help:      "Informative vector with pool metadata",
+		},
+		[]string{"subscription", "resource_group", "account", "pool", "metadata", "value"},
 	)
 }
 
@@ -159,6 +173,18 @@ func newBatchJobsStates() *prometheus.GaugeVec {
 	)
 }
 
+func newBatchJobsMetadata() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "job_metadata",
+			Help:      "Informative vector with job metadata",
+		},
+		[]string{"subscription", "resource_group", "account", "job", "metadata", "value"},
+	)
+}
+
 // -----------------------------------------------------------------------------
 
 func init() {
@@ -166,6 +192,7 @@ func init() {
 	prometheus.MustRegister(batchDedicatedCoreQuota)
 	prometheus.MustRegister(batchPoolsDedicatedNodes)
 	prometheus.MustRegister(batchPoolsNodesStates)
+	prometheus.MustRegister(batchPoolsMetadata)
 	prometheus.MustRegister(batchJobsTasksActive)
 	prometheus.MustRegister(batchJobsTasksRunning)
 	prometheus.MustRegister(batchJobsTasksCompleted)
@@ -173,6 +200,7 @@ func init() {
 	prometheus.MustRegister(batchJobsTasksFailed)
 	prometheus.MustRegister(batchJobsInfo)
 	prometheus.MustRegister(batchJobsStates)
+	prometheus.MustRegister(batchJobsMetadata)
 
 	if GetUpdateMetricsFunctionInterval("batch") == nil {
 		RegisterUpdateMetricsFunction("batch", UpdateBatchMetrics)
@@ -208,6 +236,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	nextBatchDedicatedCoreQuota := newBatchDedicatedCoreQuota()
 	nextBatchPoolsDedicatedNodes := newBatchPoolsDedicatedNodes()
 	nextBatchPoolsNodesStates := newBatchPoolsNodesStates()
+	nextBatchPoolsMetadata := newBatchPoolsMetadata()
 	nextBatchJobsTasksActive := newBatchJobsTasksActive()
 	nextBatchJobsTasksRunning := newBatchJobsTasksRunning()
 	nextBatchJobsTasksCompleted := newBatchJobsTasksCompleted()
@@ -215,6 +244,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	nextBatchJobsTasksFailed := newBatchJobsTasksFailed()
 	nextBatchJobsInfo := newBatchJobsInfo()
 	nextBatchJobsStates := newBatchJobsStates()
+	nextBatchJobsMetadata := newBatchJobsMetadata()
 
 	for _, account := range *batchAccounts {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
@@ -247,6 +277,13 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(batch.Idle)).Set(0)
 				nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(batch.Running)).Set(0)
 				nextBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+
+				// pool metadata
+				if pool.Metadata != nil {
+					for _, metadata := range *pool.Metadata {
+						nextBatchPoolsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, *metadata.Name, *metadata.Value).Set(1)
+					}
+				}
 				// metrics -->
 
 				nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, &account, &pool)
@@ -308,6 +345,13 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				// We init JobStateActive state to 0 to be sure to have a value for each jobs so we can have alerts on the state value.
 				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(batch.JobStateActive)).Set(0)
 				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(job.State)).Set(1)
+
+				// job metadata
+				if job.Metadata != nil {
+					for _, metadata := range *job.Metadata {
+						nextBatchJobsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *metadata.Name, *metadata.Value).Set(1)
+					}
+				}
 				// metrics -->
 
 				jobLogger.WithFields(log.Fields{
@@ -330,6 +374,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchDedicatedCoreQuota = *nextBatchDedicatedCoreQuota
 	*batchPoolsDedicatedNodes = *nextBatchPoolsDedicatedNodes
 	*batchPoolsNodesStates = *nextBatchPoolsNodesStates
+	*batchPoolsMetadata = *nextBatchPoolsMetadata
 	*batchJobsTasksActive = *nextBatchJobsTasksActive
 	*batchJobsTasksRunning = *nextBatchJobsTasksRunning
 	*batchJobsTasksCompleted = *nextBatchJobsTasksCompleted
@@ -337,6 +382,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchJobsTasksFailed = *nextBatchJobsTasksFailed
 	*batchJobsInfo = *nextBatchJobsInfo
 	*batchJobsStates = *nextBatchJobsStates
+	*batchJobsMetadata = *nextBatchJobsMetadata
 
 	return err
 }
