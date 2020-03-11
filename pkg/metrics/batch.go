@@ -334,6 +334,15 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(job.State)).Set(1)
 				// metrics -->
 
+				// job metadata
+				if job.Metadata != nil {
+					for _, metadata := range *job.Metadata {
+						// <!-- metrics
+						nextBatchJobsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *metadata.Name, *metadata.Value).Set(1)
+						// metrics -->
+					}
+				}
+
 				// job task count
 				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
 
@@ -348,27 +357,18 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Failed))
 					nextBatchJobsInfo.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, *job.PoolInfo.PoolID).Set(1)
 					// metrics -->
-				}
 
-				// job metadata
-				if job.Metadata != nil {
-					for _, metadata := range *job.Metadata {
-						// <!-- metrics
-						nextBatchJobsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *metadata.Name, *metadata.Value).Set(1)
-						// metrics -->
-					}
+					jobLogger.WithFields(log.Fields{
+						"metric":    "job",
+						"job":       displayName,
+						"pool":      *job.PoolInfo.PoolID,
+						"active":    *taskCounts.Active,
+						"running":   *taskCounts.Running,
+						"completed": *taskCounts.Completed,
+						"succeeded": *taskCounts.Succeeded,
+						"failed":    *taskCounts.Failed,
+					}).Debug("")
 				}
-
-				jobLogger.WithFields(log.Fields{
-					"metric":    "job",
-					"job":       displayName,
-					"pool":      *job.PoolInfo.PoolID,
-					"active":    *taskCounts.Active,
-					"running":   *taskCounts.Running,
-					"completed": *taskCounts.Completed,
-					"succeeded": *taskCounts.Succeeded,
-					"failed":    *taskCounts.Failed,
-				}).Debug("")
 			}
 		}
 		// ----------------------------------------------------------- JOBS --!>
