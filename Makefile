@@ -2,10 +2,13 @@ GIT_DESCRIBE ?= $(shell git describe --tags --dirty --broken || git rev-parse --
 
 # -- build --------------------------------------------------------------------
 
-.PHONY: build debug test install install-static
+.PHONY: build build-static debug test install install-static
 
 build:
 	go build -ldflags "-w -s -X main.version=$(GIT_DESCRIBE)"
+
+build-static:
+	CGO_ENABLED=0 go build -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_DESCRIBE)"
 
 debug:
 	go build -ldflags "-X main.version=$(GIT_DESCRIBE)"
@@ -17,7 +20,7 @@ install:
 	go install -ldflags "-w -s -X main.version=$(GIT_DESCRIBE)"
 
 install-static:
-	go install -ldflags "-linkmode external -extldflags -static -w -s -X main.version=$(GIT_DESCRIBE)"
+	CGO_ENABLED=0 go install -a -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_DESCRIBE)"
 
 # -- go -----------------------------------------------------------------------
 
