@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	version   = "v0.8.0"
+	version   = "dev"
 	goVersion = runtime.Version()
 )
 
