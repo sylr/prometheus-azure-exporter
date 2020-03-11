@@ -1,6 +1,6 @@
-FROM golang:1.14-alpine as builder
+FROM golang:1.14 as builder
 
-RUN apk update && apk upgrade && apk add --no-cache alpine-sdk
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y build-essential git
 
 ADD . $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
