@@ -64,14 +64,14 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, sub
 		list, err := containerURL.ListBlobsFlatSegment(ctx, marker, listOptions)
 		t1 := time.Since(t0).Seconds()
 
-		ObserveAzureAPICall(t1)
-		ObserveAzureStorageAPICall(t1, *subscription.DisplayName, *group.Name, *account.Name)
-
 		if err != nil {
 			ObserveAzureAPICallFailed(t1)
 			ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, *group.Name, *account.Name)
 			return err
 		}
+
+		ObserveAzureAPICall(t1)
+		ObserveAzureStorageAPICall(t1, *subscription.DisplayName, *group.Name, *account.Name)
 
 		// Update request marker.
 		marker = list.NextMarker

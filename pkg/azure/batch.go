@@ -103,12 +103,12 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 	accounts, err := client.List(ctx)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
 
 	vals := accounts.Values()
 	c.SetDefault(cacheKey, &vals)
@@ -150,14 +150,14 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, subscript
 	pools, err := client.ListByBatchAccount(ctx, accountDetails.ResourceGroup, *account.Name, nil, "", "")
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	vals := pools.Values()
 	c.SetDefault(cacheKey, vals)
@@ -198,14 +198,14 @@ func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscripti
 	cloudJobs, err := client.List(ctx, "", "", "", nil, nil, nil, nil, nil)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	jobs := make([]batch.CloudJob, 0)
 
@@ -244,14 +244,14 @@ func GetBatchJobTaskCounts(ctx context.Context, clients *AzureClients, subscript
 	taskCounts, err := client.GetTaskCounts(ctx, *job.ID, nil, nil, nil, nil)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	return &taskCounts, nil
 }
@@ -273,14 +273,14 @@ func ListBatchComputeNodes(ctx context.Context, clients *AzureClients, subscript
 	computeNodes, err := client.List(ctx, *pool.Name, "", "", nil, nil, nil, nil, nil)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureBatchAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureBatchAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	nodes := make([]batch.ComputeNode, 0)
 

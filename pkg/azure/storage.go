@@ -105,12 +105,12 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 	accounts, err := client.List(ctx)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
 
 	vals := accounts.Value
 	c.SetDefault(cacheKey, vals)
@@ -157,14 +157,14 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 	containers, err := client.List(ctx, accountDetails.ResourceGroup, *account.Name)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	vals := *containers.Value
 	c.SetDefault(cacheKey, &vals)
@@ -211,14 +211,14 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscrip
 	keys, err := client.ListKeys(ctx, accountDetails.ResourceGroup, *account.Name)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	vals := *keys.Keys
 	c.SetDefault(cacheKey, &vals)
