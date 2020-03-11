@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
 	"github.com/prometheus/client_golang/prometheus"
@@ -12,6 +13,7 @@ import (
 )
 
 var (
+	mu                       = sync.Mutex{}
 	batchPoolQuota           = newBatchPoolQuota()
 	batchDedicatedCoreQuota  = newBatchDedicatedCoreQuota()
 	batchPoolsDedicatedNodes = newBatchPoolsDedicatedNodes()
@@ -373,6 +375,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	}
 
 	// swapping current registered metrics with updated copies
+	mu.Lock()
 	*batchPoolQuota = *nextBatchPoolQuota
 	*batchDedicatedCoreQuota = *nextBatchDedicatedCoreQuota
 	*batchPoolsDedicatedNodes = *nextBatchPoolsDedicatedNodes
@@ -386,6 +389,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchJobsInfo = *nextBatchJobsInfo
 	*batchJobsStates = *nextBatchJobsStates
 	*batchJobsMetadata = *nextBatchJobsMetadata
+	mu.Unlock()
 
 	return err
 }
