@@ -95,14 +95,14 @@ func ListApplications(ctx context.Context, clients *AzureClients) (*[]graph.Appl
 	apps, err := client.List(ctx, "")
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-	ObserveAzureGraphAPICall(t1)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		ObserveAzureGraphAPICallFailed(t1)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
+	ObserveAzureGraphAPICall(t1)
 
 	vals := apps.Values()
 	c.SetDefault(cacheKey, &vals)

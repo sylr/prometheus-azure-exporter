@@ -34,12 +34,12 @@ func GetSubscription(ctx context.Context, clients *AzureClients, subscriptionID 
 	sub, err := client.Get(ctx, subscriptionID)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
 
 	c.SetDefault(subscriptionID, &sub)
 

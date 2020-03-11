@@ -41,12 +41,12 @@ func GetResourceGroup(ctx context.Context, clients *AzureClients, subscription *
 	group, err := client.Get(ctx, name)
 	t1 := time.Since(t0).Seconds()
 
-	ObserveAzureAPICall(t1)
-
 	if err != nil {
 		ObserveAzureAPICallFailed(t1)
 		return nil, err
 	}
+
+	ObserveAzureAPICall(t1)
 
 	c.SetDefault(cacheKey, &group)
 
