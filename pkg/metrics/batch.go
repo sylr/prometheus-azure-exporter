@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
 	"github.com/prometheus/client_golang/prometheus"
@@ -12,6 +13,7 @@ import (
 )
 
 var (
+	mu                       = sync.Mutex{}
 	batchPoolQuota           = newBatchPoolQuota()
 	batchDedicatedCoreQuota  = newBatchDedicatedCoreQuota()
 	batchPoolsDedicatedNodes = newBatchPoolsDedicatedNodes()
@@ -318,9 +320,6 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					"job_id": *job.ID,
 				})
 
-				// job task count
-				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
-
 				// job.DisplayName can be nil but we don't want that
 				displayName := *job.ID
 				if job.DisplayName != nil {
@@ -329,30 +328,36 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					jobLogger.Warnf("Job has no display name, defaulting to job.ID")
 				}
 
-				if err != nil {
-					jobLogger.Errorf("Unable to get jobs task count: %s", err)
-					continue
-				}
-
 				// <!-- metrics
-				nextBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Active))
-				nextBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Running))
-				nextBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Completed))
-				nextBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Succeeded))
-				nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Failed))
-				nextBatchJobsInfo.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, *job.PoolInfo.PoolID).Set(1)
-
 				// We init JobStateActive state to 0 to be sure to have a value for each jobs so we can have alerts on the state value.
 				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(batch.JobStateActive)).Set(0)
 				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(job.State)).Set(1)
+				// metrics -->
+
+				// job task count
+				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
+
+				if err != nil {
+					jobLogger.Errorf("Unable to get jobs task count: %s", err)
+				} else {
+					// <!-- metrics
+					nextBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Active))
+					nextBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Running))
+					nextBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Completed))
+					nextBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Succeeded))
+					nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Failed))
+					nextBatchJobsInfo.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, *job.PoolInfo.PoolID).Set(1)
+					// metrics -->
+				}
 
 				// job metadata
 				if job.Metadata != nil {
 					for _, metadata := range *job.Metadata {
+						// <!-- metrics
 						nextBatchJobsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *metadata.Name, *metadata.Value).Set(1)
+						// metrics -->
 					}
 				}
-				// metrics -->
 
 				jobLogger.WithFields(log.Fields{
 					"metric":    "job",
@@ -370,6 +375,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	}
 
 	// swapping current registered metrics with updated copies
+	mu.Lock()
 	*batchPoolQuota = *nextBatchPoolQuota
 	*batchDedicatedCoreQuota = *nextBatchDedicatedCoreQuota
 	*batchPoolsDedicatedNodes = *nextBatchPoolsDedicatedNodes
@@ -383,6 +389,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchJobsInfo = *nextBatchJobsInfo
 	*batchJobsStates = *nextBatchJobsStates
 	*batchJobsMetadata = *nextBatchJobsMetadata
+	mu.Unlock()
 
 	return err
 }
