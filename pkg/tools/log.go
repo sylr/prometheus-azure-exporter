@@ -51,9 +51,7 @@ KEYS:
 		sort.Strings(unknownKeys)
 	}
 
-	for i, k := range sortedKeys {
-		keys[i] = k
-	}
+	copy(keys, sortedKeys)
 
 	for i, k := range unknownKeys {
 		keys[len(sortedKeys)+i] = k
