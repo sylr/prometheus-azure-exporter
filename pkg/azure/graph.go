@@ -96,8 +96,10 @@ func ListApplications(ctx context.Context, clients *AzureClients) (*[]graph.Appl
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
-		ObserveAzureAPICallFailed(t1)
-		ObserveAzureGraphAPICallFailed(t1)
+		if ctx.Err() != context.Canceled {
+			ObserveAzureAPICallFailed(t1)
+			ObserveAzureGraphAPICallFailed(t1)
+		}
 		return nil, err
 	}
 
