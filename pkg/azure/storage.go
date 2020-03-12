@@ -50,8 +50,8 @@ var (
 			Namespace: "azure_api",
 			Subsystem: "storage",
 			Name:      "calls_duration_seconds",
-			Help:      "Histograms of Azure Storage API calls durations in seconds",
-			Buckets:   []float64{0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0},
+			Help:      "Histograms of successful Azure Storage API calls durations in seconds",
+			Buckets:   []float64{0.02, 0.03, 0.04, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.0, 2.0},
 		},
 		[]string{"subscription", "resource_group", "account"},
 	)
