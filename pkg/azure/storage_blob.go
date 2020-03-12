@@ -65,8 +65,10 @@ func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, sub
 		t1 := time.Since(t0).Seconds()
 
 		if err != nil {
-			ObserveAzureAPICallFailed(t1)
-			ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, *group.Name, *account.Name)
+			if ctx.Err() != context.Canceled {
+				ObserveAzureAPICallFailed(t1)
+				ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, *group.Name, *account.Name)
+			}
 			return err
 		}
 

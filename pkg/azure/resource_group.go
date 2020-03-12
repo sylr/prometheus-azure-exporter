@@ -42,7 +42,9 @@ func GetResourceGroup(ctx context.Context, clients *AzureClients, subscription *
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
-		ObserveAzureAPICallFailed(t1)
+		if ctx.Err() != context.Canceled {
+			ObserveAzureAPICallFailed(t1)
+		}
 		return nil, err
 	}
 

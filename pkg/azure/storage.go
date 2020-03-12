@@ -106,7 +106,9 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
-		ObserveAzureAPICallFailed(t1)
+		if ctx.Err() != context.Canceled {
+			ObserveAzureAPICallFailed(t1)
+		}
 		return nil, err
 	}
 
@@ -158,8 +160,10 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
-		ObserveAzureAPICallFailed(t1)
-		ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
+		if ctx.Err() != context.Canceled {
+			ObserveAzureAPICallFailed(t1)
+			ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
+		}
 		return nil, err
 	}
 
@@ -212,8 +216,10 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscrip
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
-		ObserveAzureAPICallFailed(t1)
-		ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
+		if ctx.Err() != context.Canceled {
+			ObserveAzureAPICallFailed(t1)
+			ObserveAzureStorageAPICallFailed(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
+		}
 		return nil, err
 	}
 
