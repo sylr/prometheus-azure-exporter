@@ -20,7 +20,7 @@ require (
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/procfs v0.0.10 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.5.0
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d // indirect
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/sys v0.0.0-20200302083256-062a44052db1 // indirect
