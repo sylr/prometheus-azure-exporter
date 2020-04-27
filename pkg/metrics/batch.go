@@ -13,20 +13,21 @@ import (
 )
 
 var (
-	mu                       = sync.Mutex{}
-	batchPoolQuota           = newBatchPoolQuota()
-	batchDedicatedCoreQuota  = newBatchDedicatedCoreQuota()
-	batchPoolsDedicatedNodes = newBatchPoolsDedicatedNodes()
-	batchPoolsNodesStates    = newBatchPoolsNodesStates()
-	batchPoolsMetadata       = newBatchPoolsMetadata()
-	batchJobsTasksActive     = newBatchJobsTasksActive()
-	batchJobsTasksRunning    = newBatchJobsTasksRunning()
-	batchJobsTasksCompleted  = newBatchJobsTasksCompleted()
-	batchJobsTasksSucceeded  = newBatchJobsTasksSucceeded()
-	batchJobsTasksFailed     = newBatchJobsTasksFailed()
-	batchJobsInfo            = newBatchJobsInfo()
-	batchJobsStates          = newBatchJobsStates()
-	batchJobsMetadata        = newBatchJobsMetadata()
+	mu                        = sync.Mutex{}
+	batchPoolQuota            = newBatchPoolQuota()
+	batchDedicatedCoreQuota   = newBatchDedicatedCoreQuota()
+	batchPoolsDedicatedNodes  = newBatchPoolsDedicatedNodes()
+	batchPoolsNodesState      = newBatchPoolsNodesState()
+	batchPoolsAllocationState = newBatchPoolsAllocationState()
+	batchPoolsMetadata        = newBatchPoolsMetadata()
+	batchJobsTasksActive      = newBatchJobsTasksActive()
+	batchJobsTasksRunning     = newBatchJobsTasksRunning()
+	batchJobsTasksCompleted   = newBatchJobsTasksCompleted()
+	batchJobsTasksSucceeded   = newBatchJobsTasksSucceeded()
+	batchJobsTasksFailed      = newBatchJobsTasksFailed()
+	batchJobsInfo             = newBatchJobsInfo()
+	batchJobsStates           = newBatchJobsStates()
+	batchJobsMetadata         = newBatchJobsMetadata()
 )
 
 // -----------------------------------------------------------------------------
@@ -67,13 +68,25 @@ func newBatchPoolsDedicatedNodes() *prometheus.GaugeVec {
 	)
 }
 
-func newBatchPoolsNodesStates() *prometheus.GaugeVec {
+func newBatchPoolsNodesState() *prometheus.GaugeVec {
 	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "azure",
 			Subsystem: "batch",
 			Name:      "pool_node_state",
 			Help:      "Number of nodes for each states",
+		},
+		[]string{"subscription", "resource_group", "account", "pool", "state"},
+	)
+}
+
+func newBatchPoolsAllocationState() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "azure",
+			Subsystem: "batch",
+			Name:      "pool_allocation_state",
+			Help:      "Allocation state of the pool",
 		},
 		[]string{"subscription", "resource_group", "account", "pool", "state"},
 	)
@@ -193,7 +206,8 @@ func init() {
 	prometheus.MustRegister(batchPoolQuota)
 	prometheus.MustRegister(batchDedicatedCoreQuota)
 	prometheus.MustRegister(batchPoolsDedicatedNodes)
-	prometheus.MustRegister(batchPoolsNodesStates)
+	prometheus.MustRegister(batchPoolsNodesState)
+	prometheus.MustRegister(batchPoolsAllocationState)
 	prometheus.MustRegister(batchPoolsMetadata)
 	prometheus.MustRegister(batchJobsTasksActive)
 	prometheus.MustRegister(batchJobsTasksRunning)
@@ -237,7 +251,8 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	nextBatchPoolQuota := newBatchPoolQuota()
 	nextBatchDedicatedCoreQuota := newBatchDedicatedCoreQuota()
 	nextBatchPoolsDedicatedNodes := newBatchPoolsDedicatedNodes()
-	nextBatchPoolsNodesStates := newBatchPoolsNodesStates()
+	nextBatchPoolsNodesState := newBatchPoolsNodesState()
+	nextBatchPoolsAllocationState := newBatchPoolsAllocationState()
 	nextBatchPoolsMetadata := newBatchPoolsMetadata()
 	nextBatchJobsTasksActive := newBatchJobsTasksActive()
 	nextBatchJobsTasksRunning := newBatchJobsTasksRunning()
@@ -275,18 +290,26 @@ func UpdateBatchMetrics(ctx context.Context) error {
 			accountLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
 		} else {
 			for _, pool := range pools {
-				// <!-- metrics
-				nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(batch.Idle)).Set(0)
-				nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(batch.Running)).Set(0)
+				// Pool allocation state
+				for state := range batch.PossibleAllocationStateValues() {
+					nextBatchPoolsAllocationState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
+				}
+
+				nextBatchPoolsAllocationState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(pool.AllocationState)).Set(1)
+
+				// Nodes state
+				for state := range batch.PossibleComputeNodeStateValues() {
+					nextBatchPoolsNodesState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
+				}
+
 				nextBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
 
-				// pool metadata
+				// Metadata
 				if pool.Metadata != nil {
 					for _, metadata := range *pool.Metadata {
 						nextBatchPoolsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, *metadata.Name, *metadata.Value).Set(1)
 					}
 				}
-				// metrics -->
 
 				nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, &account, &pool)
 
@@ -294,9 +317,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					accountLogger.WithFields(log.Fields{}).Error(err.Error())
 				} else {
 					for _, node := range *nodes {
-						// <!-- metrics
-						nextBatchPoolsNodesStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(node.State)).Inc()
-						// metrics -->
+						nextBatchPoolsNodesState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(node.State)).Inc()
 					}
 				}
 
@@ -379,7 +400,8 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	*batchPoolQuota = *nextBatchPoolQuota
 	*batchDedicatedCoreQuota = *nextBatchDedicatedCoreQuota
 	*batchPoolsDedicatedNodes = *nextBatchPoolsDedicatedNodes
-	*batchPoolsNodesStates = *nextBatchPoolsNodesStates
+	*batchPoolsNodesState = *nextBatchPoolsNodesState
+	*batchPoolsAllocationState = *nextBatchPoolsAllocationState
 	*batchPoolsMetadata = *nextBatchPoolsMetadata
 	*batchJobsTasksActive = *nextBatchJobsTasksActive
 	*batchJobsTasksRunning = *nextBatchJobsTasksRunning
