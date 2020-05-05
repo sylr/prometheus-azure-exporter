@@ -14,13 +14,12 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-ieproxy v0.0.0-20200203040449-2dbc853185d9 // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/procfs v0.0.10 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.5.0
+	github.com/sirupsen/logrus v1.6.0
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d // indirect
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/sys v0.0.0-20200302083256-062a44052db1 // indirect
