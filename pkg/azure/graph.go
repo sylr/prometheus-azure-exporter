@@ -8,7 +8,7 @@ import (
 	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
+	"github.com/sylr/go-libqd/cache"
 )
 
 var (
@@ -66,7 +66,7 @@ func ObserveAzureGraphAPICallFailed(duration float64, labels ...string) {
 
 // ListApplications list applications
 func ListApplications(ctx context.Context, clients *AzureClients) (*[]graph.Application, error) {
-	c := cache.GetCache(5 * time.Minute)
+	c := cache.GetCache(5*time.Minute, time.Minute)
 
 	contextLogger := log.WithFields(log.Fields{
 		"_id": ctx.Value("id").(string),

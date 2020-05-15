@@ -153,6 +153,11 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/sylr/go-cache v2.1.1-0.20190112150453-7f6fb256aaca+incompatible h1:BYJm04EObF5wxJUd0g1YLwIvfQu1MIwX5fiFt5xmjDY=
 github.com/sylr/go-cache v2.1.1-0.20190112150453-7f6fb256aaca+incompatible/go.mod h1:7XejAOZorpk1FSISJnaJhTggTVnJzeJXqplq4wid0cc=
+github.com/sylr/go-cache/v2 v2.2.0 h1:qD3grsQ+X195UhsN4AwQGH3xLaRzsVcUZkCg43JjoCY=
+github.com/sylr/go-cache/v2 v2.2.0/go.mod h1:2Q5Cbu+EfFNlcw+eS6NGinCkgdCsAv1fe0Ekph7KyWk=
+github.com/sylr/go-libqd v0.1.0 h1:NtABFMWZYH4rrsgTkYxpr+V01tgp0HnSELrbgSwWsAE=
+github.com/sylr/go-libqd/cache v0.1.0 h1:Dreh4R5Dl0CB4/mdFDEezG66KFCRpP3OZ9QgM6Jcbbc=
+github.com/sylr/go-libqd/cache v0.1.0/go.mod h1:gk6DX0LhoRoAaZHiPK5MWO2q7zRenOdPIO3Wg6F6nCs=
 github.com/sylr/prometheus-client-golang v1.4.2-0.20200226090308-80f92138efbf h1:rJ+WMkPs4BONVjHdAzTs6GzeciAjn+a/sGHaWGCOclA=
 github.com/sylr/prometheus-client-golang v1.4.2-0.20200226090308-80f92138efbf/go.mod h1:e9GMxYsXl05ICDXkRhurwBS4Q3OK1iX/F2sw+iXX5zU=
 github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94 h1:S9V/kD0lVYC3jV34JJUyO8B+7xrkNZ6Ps7gyjQ/k0Rs=
@@ -187,6 +192,7 @@ golang.org/x/sys v0.0.0-20200122134326-e047566fdf82 h1:ywK/j/KkyTHcdyYSZNXGjMwgm
 golang.org/x/sys v0.0.0-20200122134326-e047566fdf82/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200302083256-062a44052db1 h1:trYYa2hBaTeei9Bq2uAXwsfNYW4r+xD/tztngRsT0cQ=
 golang.org/x/sys v0.0.0-20200302083256-062a44052db1/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 h1:YTzHMGlqJu67/uEo1lBv0n3wBXhXNeUbB1XfN2vmTm0=

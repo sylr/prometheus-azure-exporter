@@ -8,9 +8,9 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	log "github.com/sirupsen/logrus"
+	"github.com/sylr/go-libqd/cache"
 	"github.com/sylr/prometheus-azure-exporter/pkg/config"
 	"github.com/sylr/prometheus-azure-exporter/pkg/metrics"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
 )
 
 func setConfig() error {
@@ -64,7 +64,7 @@ func applyConfig(conf *config.PrometheusAzureExporterConfig) error {
 
 	// Turn on Noop caching
 	if config.CurrentConfig.NoCache {
-		cache.NoopCaching = true
+		cache.SetNoop(true)
 	}
 
 	// Update metrics functions interval

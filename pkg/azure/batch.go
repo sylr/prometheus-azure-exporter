@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
+	"github.com/sylr/go-libqd/cache"
 )
 
 const (
@@ -74,7 +74,7 @@ func ObserveAzureBatchAPICallFailed(duration float64, labels ...string) {
 
 // ListSubscriptionBatchAccounts List all subscription batch accounts
 func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, subscription *subscription.Model) (*[]azurebatch.Account, error) {
-	c := cache.GetCache(5 * time.Minute)
+	c := cache.GetCache(5*time.Minute, time.Minute)
 	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccounts, *subscription.SubscriptionID)
 
 	contextLogger := log.WithFields(log.Fields{
@@ -118,7 +118,7 @@ func ListSubscriptionBatchAccounts(ctx context.Context, clients *AzureClients, s
 
 // ListBatchAccountPools List all batch account's pools
 func ListBatchAccountPools(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account) ([]azurebatch.Pool, error) {
-	c := cache.GetCache(5 * time.Minute)
+	c := cache.GetCache(5*time.Minute, time.Minute)
 
 	accountDetails, _ := ParseResourceID(*account.ID)
 	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccountPools, *subscription.SubscriptionID, *account.Name)
@@ -169,7 +169,7 @@ func ListBatchAccountPools(ctx context.Context, clients *AzureClients, subscript
 
 // ListBatchAccountJobs list batch account jobs
 func ListBatchAccountJobs(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *azurebatch.Account) ([]batch.CloudJob, error) {
-	c := cache.GetCache(5 * time.Minute)
+	c := cache.GetCache(5*time.Minute, time.Minute)
 
 	accountDetails, _ := ParseResourceID(*account.ID)
 	cacheKey := fmt.Sprintf(cacheKeySubscriptionBatchAccountJobs, *subscription.SubscriptionID, *account.Name)

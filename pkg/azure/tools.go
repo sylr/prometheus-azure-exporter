@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sylr/prometheus-azure-exporter/pkg/tools/cache"
+	"github.com/sylr/go-libqd/cache"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	c                 = cache.GetCache(1 * time.Hour)
+	c                 = cache.GetCache(1*time.Hour, time.Minute)
 	resourceIDPattern = regexp.MustCompile(resourceIDPatternText)
 )
 
