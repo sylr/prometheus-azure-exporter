@@ -131,8 +131,11 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/sylr/go-cache/v2 v2.2.0 h1:qD3grsQ+X195UhsN4AwQGH3xLaRzsVcUZkCg43JjoCY=
 github.com/sylr/go-cache/v2 v2.2.0/go.mod h1:2Q5Cbu+EfFNlcw+eS6NGinCkgdCsAv1fe0Ekph7KyWk=
+github.com/sylr/go-libqd v0.1.0 h1:NtABFMWZYH4rrsgTkYxpr+V01tgp0HnSELrbgSwWsAE=
 github.com/sylr/go-libqd/cache v0.1.0 h1:Dreh4R5Dl0CB4/mdFDEezG66KFCRpP3OZ9QgM6Jcbbc=
 github.com/sylr/go-libqd/cache v0.1.0/go.mod h1:gk6DX0LhoRoAaZHiPK5MWO2q7zRenOdPIO3Wg6F6nCs=
+github.com/sylr/go-libqd/sync v0.1.0 h1:QLafN0eMKgK4V8Xj8IlgldAbkBhe/rHAhX+6X2Z2MkU=
+github.com/sylr/go-libqd/sync v0.1.0/go.mod h1:+5Fj/CkT8L/zVt0V9FuREbaHulNaOV2sKIzKKsVfOSU=
 github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94 h1:S9V/kD0lVYC3jV34JJUyO8B+7xrkNZ6Ps7gyjQ/k0Rs=
 github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94/go.mod h1:ZLOG9ck3JLRdB5MgO8f+lLTe83AXG6ro35rLTxvnIl4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
