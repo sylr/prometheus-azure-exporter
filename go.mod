@@ -12,18 +12,15 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/mattn/go-ieproxy v0.0.1 // indirect
 	github.com/prometheus/client_golang v1.14.1
-	github.com/prometheus/common v0.10.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
-	github.com/sylr/go-libqd/cache v0.1.0
+	github.com/sylr/go-libqd/cache v0.1.1
 	github.com/sylr/go-libqd/sync v0.1.0
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
 	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect
-	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
 

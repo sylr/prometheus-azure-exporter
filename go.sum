@@ -126,6 +126,8 @@ github.com/sylr/go-cache/v2 v2.2.0 h1:qD3grsQ+X195UhsN4AwQGH3xLaRzsVcUZkCg43JjoC
 github.com/sylr/go-cache/v2 v2.2.0/go.mod h1:2Q5Cbu+EfFNlcw+eS6NGinCkgdCsAv1fe0Ekph7KyWk=
 github.com/sylr/go-libqd/cache v0.1.0 h1:Dreh4R5Dl0CB4/mdFDEezG66KFCRpP3OZ9QgM6Jcbbc=
 github.com/sylr/go-libqd/cache v0.1.0/go.mod h1:gk6DX0LhoRoAaZHiPK5MWO2q7zRenOdPIO3Wg6F6nCs=
+github.com/sylr/go-libqd/cache v0.1.1 h1:wQkd04QChkGorJzw+0S595VI+sKq3+x14bPz2VHGGP8=
+github.com/sylr/go-libqd/cache v0.1.1/go.mod h1:yoLCcn6dCQbjbqWRwDrMJ9Syh1MO38ICSFI4HawjIbI=
 github.com/sylr/go-libqd/sync v0.1.0 h1:QLafN0eMKgK4V8Xj8IlgldAbkBhe/rHAhX+6X2Z2MkU=
 github.com/sylr/go-libqd/sync v0.1.0/go.mod h1:+5Fj/CkT8L/zVt0V9FuREbaHulNaOV2sKIzKKsVfOSU=
 github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94 h1:S9V/kD0lVYC3jV34JJUyO8B+7xrkNZ6Ps7gyjQ/k0Rs=
@@ -152,6 +154,8 @@ golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 h1:YTzHMGlqJu67/uEo1lBv0n3wBXhXNeUbB1XfN2vmTm0=
 golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 h1:DYfZAGf2WMFjMxbgTjaC+2HC7NkNAQs+6Q8b9WEB/F4=
+golang.org/x/sys v0.0.0-20200519105757-fe76b779f299/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
