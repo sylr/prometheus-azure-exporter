@@ -47,8 +47,8 @@ type PrometheusAzureExporterConfig struct {
 	AzureSubscriptionID      string `env:"AZURE_SUBSCRIPTION_ID"        description:"Azure subscription id"`
 	AzureClientID            string `env:"AZURE_CLIENT_ID"              description:"Azure client id"`
 	AzureClientSecret        string `env:"AZURE_CLIENT_SECRET"          description:"Azure client secret"`
-	AzureCertificatePath     string `env:"AZURE_CERTIFICATE_PATH"       description:"Azure certficate path"`
-	AzureCertificatePassword string `env:"AZURE_CERTIFICATE_PASSWORD"   description:"Azure certficate password"`
+	AzureCertificatePath     string `env:"AZURE_CERTIFICATE_PATH"       description:"Azure certificate path"`
+	AzureCertificatePassword string `env:"AZURE_CERTIFICATE_PASSWORD"   description:"Azure certificate password"`
 	AzureUsername            string `env:"AZURE_USERNAME"               description:"Azure username"`
 	AzurePassword            string `env:"AZURE_PASSWORD"               description:"Azure password"`
 	AzureEnvironment         string `env:"AZURE_ENVIRONMENT"            description:"Azure environment"`

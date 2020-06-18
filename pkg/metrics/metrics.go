@@ -222,7 +222,7 @@ func updateMetricsWithInterval(ctx context.Context, wg *sync.WaitGroup, interval
 	waiter := time.NewTicker(wait)
 	processLogger.Infof("Waiting before starting to update metrics: %s", wait.Round(time.Second))
 
-	// Wait for time sync or cancelation of context (reload).
+	// Wait for time sync or cancellation of context (reload).
 	select {
 	case <-waiter.C:
 	case <-ctx.Done():
@@ -274,7 +274,7 @@ func updateMetricsWithInterval(ctx context.Context, wg *sync.WaitGroup, interval
 			}(ctx, updateMetricsFuncName, updateMetricsFunc, t)
 		}
 
-		// wait for ticker or cancelation of context (reload).
+		// wait for ticker or cancellation of context (reload).
 		select {
 		case t = <-ticker.C:
 		case <-ctx.Done():
