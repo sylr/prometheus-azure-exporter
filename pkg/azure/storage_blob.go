@@ -27,7 +27,7 @@ type StorageAccountContainerWalker interface {
 	WalkBlob(*subscription.Model, *resources.Group, *storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
 }
 
-// WalkStorageAccountContainer applies a function on all storage account containter blobs.
+// WalkStorageAccountContainer applies a function on all storage account container blobs.
 func WalkStorageAccountContainer(ctx context.Context, clients *AzureClients, subscription *subscription.Model, account *storage.Account, container *storage.ListContainerItem, walker StorageAccountContainerWalker) error {
 	token, err := GetStorageToken(ctx)
 
