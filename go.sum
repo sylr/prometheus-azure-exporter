@@ -24,6 +24,8 @@ github.com/Azure/go-autorest/autorest v0.10.2 h1:NuSF3gXetiHyUbVdneJMEVyPUYAe5wh
 github.com/Azure/go-autorest/autorest v0.10.2/go.mod h1:/FALq9T/kS7b5J5qsQ+RSTUdAmGFqi0vUdVNNx8q630=
 github.com/Azure/go-autorest/autorest v0.11.0 h1:tnO41Uo+/0sxTMFY/U7aKg2abek3JOnnXcuSuba74jI=
 github.com/Azure/go-autorest/autorest v0.11.0/go.mod h1:JFgpikqFJ/MleTTxwepExTKnFUKKszPS8UavbQYUMuw=
+github.com/Azure/go-autorest/autorest v0.11.1 h1:eVvIXUKiTgv++6YnWb42DUA1YL7qDugnKP0HljexdnQ=
+github.com/Azure/go-autorest/autorest v0.11.1/go.mod h1:JFgpikqFJ/MleTTxwepExTKnFUKKszPS8UavbQYUMuw=
 github.com/Azure/go-autorest/autorest/adal v0.5.0/go.mod h1:8Z9fGy2MpX0PvDjB1pEgQTmVqjGhiHBW7RJJEciWzS0=
 github.com/Azure/go-autorest/autorest/adal v0.8.0 h1:CxTzQrySOxDnKpLjFJeZAS5Qrv/qFPkgLjx5bOAi//I=
 github.com/Azure/go-autorest/autorest/adal v0.8.0/go.mod h1:Z6vX6WXXuyieHAXwMj0S6HY6e6wcHn37qQMBQlvY3lc=
