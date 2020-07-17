@@ -12,8 +12,8 @@ jobs:
         docker tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-debian \
                    docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)
 
-    #- name: Build scracth based docker image
-    #  run: docker build . --file scratch.Dockerfile --tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-scratch
+    - name: Build scracth based docker image
+      run: docker build . --file Dockerfile-scratch --tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-scratch
 
     - name: Login to GitHub Docker Registry
       run: docker login docker.pkg.github.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
@@ -24,5 +24,5 @@ jobs:
     - name: Push the Docker image
       run: |-
         docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-debian
-        #docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-scratch
+        docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-scratch
         docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)

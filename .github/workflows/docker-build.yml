@@ -23,7 +23,7 @@ jobs:
     - name: Build debian based docker image
       run: docker build . -f Dockerfile -t prometheus-azure-exporter:$(git describe --tag)-debian
 
-    #- name: Docker scratch based docker image
-    #  run: docker build . -f scratch.Dockerfile -t prometheus-azure-exporter:$(git describe --tag)-scratch
+    - name: Docker scratch based docker image
+      run: docker build . -f Dockerfile-scratch -t prometheus-azure-exporter:$(git describe --tag)-scratch
 
     - run: docker images
