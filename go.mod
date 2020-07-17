@@ -3,6 +3,7 @@ module github.com/sylr/prometheus-azure-exporter
 go 1.14
 
 require (
+	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
 	github.com/Azure/azure-sdk-for-go v42.3.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.10.0
 	github.com/Azure/go-autorest/autorest v0.11.2
@@ -12,7 +13,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/mattn/go-ieproxy v0.0.1 // indirect
 	github.com/prometheus/client_golang v1.14.1
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
