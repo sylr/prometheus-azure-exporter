@@ -13,6 +13,12 @@ RUN git update-index --refresh; make install-static
 FROM scratch
 
 WORKDIR /usr/local/bin
+
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+COPY --from=builder /etc/services /etc/services
 COPY --from=builder "/go/bin/prometheus-azure-exporter" .
 
 ENTRYPOINT ["/usr/local/bin/prometheus-azure-exporter"]
