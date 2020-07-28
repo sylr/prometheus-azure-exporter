@@ -1,18 +1,27 @@
 name: Go
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ["1.14", "1.15.0-rc1"]
     steps:
-    - name: Set up Go 1.14
-      uses: actions/setup-go@v1
+    - name: Set up Go
+      uses: actions/setup-go@v2
       with:
-        go-version: 1.14
+        stable: "false"
+        go-version: ${{ matrix.go }}
       id: go
+
+    - name: Go version
+      run: go version
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Verify go mod
       run: make verify-go-mod

@@ -39,4 +39,7 @@ go-dep-upgrade-major:
 	go get -u ./...
 
 verify-go-mod: go-mod-download
-	git diff --quiet go.mod go.sum || git diff --exit-code go.mod go.sum
+	@git diff --quiet go.mod go.sum || { \
+	    git diff go.mod go.sum; \
+	    git diff --exit-code go.mod go.sum; \
+	}

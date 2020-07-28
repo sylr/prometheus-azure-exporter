@@ -291,14 +291,14 @@ func UpdateBatchMetrics(ctx context.Context) error {
 		} else {
 			for _, pool := range pools {
 				// Pool allocation state
-				for state := range batch.PossibleAllocationStateValues() {
+				for _, state := range batch.PossibleAllocationStateValues() {
 					nextBatchPoolsAllocationState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
 				}
 
 				nextBatchPoolsAllocationState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(pool.AllocationState)).Set(1)
 
 				// Nodes state
-				for state := range batch.PossibleComputeNodeStateValues() {
+				for _, state := range batch.PossibleComputeNodeStateValues() {
 					nextBatchPoolsNodesState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
 				}
 
