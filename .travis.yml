@@ -8,6 +8,7 @@ dist: xenial
 
 go:
 - "1.14.x"
+- "1.15.x"
 
 go_import_path: github.com/sylr/prometheus-azure-exporter
 
@@ -35,4 +36,3 @@ script:
 - make build
 - ./prometheus-azure-exporter --version
 - ./prometheus-azure-exporter --help
-- docker build .
