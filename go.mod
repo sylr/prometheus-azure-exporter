@@ -16,7 +16,7 @@ require (
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/prometheus/client_golang v1.14.1
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/sylr/go-libqd/cache v0.1.1
 	github.com/sylr/go-libqd/sync v0.1.1
 	golang.org/x/text v0.3.3 // indirect
