@@ -18,7 +18,7 @@ require (
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/sylr/go-libqd/cache v0.1.1
-	github.com/sylr/go-libqd/sync v0.1.1
+	github.com/sylr/go-libqd/sync v0.1.2
 	golang.org/x/text v0.3.3 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
