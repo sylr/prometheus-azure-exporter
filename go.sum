@@ -169,6 +169,8 @@ github.com/sylr/go-libqd/cache v0.1.1 h1:wQkd04QChkGorJzw+0S595VI+sKq3+x14bPz2VH
 github.com/sylr/go-libqd/cache v0.1.1/go.mod h1:yoLCcn6dCQbjbqWRwDrMJ9Syh1MO38ICSFI4HawjIbI=
 github.com/sylr/go-libqd/sync v0.1.1 h1:IjsAOSZnCWUhZKTVlvN9Pg4Yox7DNXnf8bG8nLw7ino=
 github.com/sylr/go-libqd/sync v0.1.1/go.mod h1:+5Fj/CkT8L/zVt0V9FuREbaHulNaOV2sKIzKKsVfOSU=
+github.com/sylr/go-libqd/sync v0.1.2 h1:IvozQUMnGRXtDoNbANeyzcesyf8vPYV9W0NSLYrZLGI=
+github.com/sylr/go-libqd/sync v0.1.2/go.mod h1:+5Fj/CkT8L/zVt0V9FuREbaHulNaOV2sKIzKKsVfOSU=
 github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94 h1:S9V/kD0lVYC3jV34JJUyO8B+7xrkNZ6Ps7gyjQ/k0Rs=
 github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94/go.mod h1:ZLOG9ck3JLRdB5MgO8f+lLTe83AXG6ro35rLTxvnIl4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
