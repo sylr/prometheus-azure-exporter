@@ -115,7 +115,7 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 	ObserveAzureAPICall(t1)
 
 	vals := accounts.Values()
-	c.SetDefault(cacheKey, vals)
+	c.SetDefault(cacheKey, &vals)
 
 	return &vals, nil
 }
@@ -171,7 +171,7 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
 	vals := containers.Values()
-	c.SetDefault(cacheKey, vals)
+	c.SetDefault(cacheKey, &vals)
 
 	return &vals, nil
 }
