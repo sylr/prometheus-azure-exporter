@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-07-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -114,10 +114,10 @@ func ListSubscriptionStorageAccounts(ctx context.Context, clients *AzureClients,
 
 	ObserveAzureAPICall(t1)
 
-	vals := accounts.Value
+	vals := accounts.Values()
 	c.SetDefault(cacheKey, vals)
 
-	return vals, nil
+	return &vals, nil
 }
 
 // ListStorageAccountContainers ...
@@ -156,7 +156,7 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 	}
 
 	t0 := time.Now()
-	containers, err := client.List(ctx, accountDetails.ResourceGroup, *account.Name)
+	containers, err := client.List(ctx, accountDetails.ResourceGroup, *account.Name, "", "", "")
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
@@ -170,8 +170,8 @@ func ListStorageAccountContainers(ctx context.Context, clients *AzureClients, su
 	ObserveAzureAPICall(t1)
 	ObserveAzureStorageAPICall(t1, *subscription.DisplayName, accountDetails.ResourceGroup, *account.Name)
 
-	vals := *containers.Value
-	c.SetDefault(cacheKey, &vals)
+	vals := containers.Values()
+	c.SetDefault(cacheKey, vals)
 
 	return &vals, nil
 }
@@ -212,7 +212,7 @@ func ListStorageAccountKeys(ctx context.Context, clients *AzureClients, subscrip
 	}
 
 	t0 := time.Now()
-	keys, err := client.ListKeys(ctx, accountDetails.ResourceGroup, *account.Name)
+	keys, err := client.ListKeys(ctx, accountDetails.ResourceGroup, *account.Name, "")
 	t1 := time.Since(t0).Seconds()
 
 	if err != nil {
