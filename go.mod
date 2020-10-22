@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
-	github.com/Azure/azure-sdk-for-go v47.0.0+incompatible
+	github.com/Azure/azure-sdk-for-go v47.1.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.10.0
 	github.com/Azure/go-autorest/autorest v0.11.10
 	github.com/Azure/go-autorest/autorest/adal v0.9.5
