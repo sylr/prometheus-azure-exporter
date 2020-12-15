@@ -1,42 +1,43 @@
-GIT_DESCRIBE ?= $(shell git describe --tags --dirty --broken || git rev-parse --short HEAD)
+GO           ?= go
+GIT_DESCRIBE ?= $(shell git describe --always --tags --dirty --broken 2>/dev/null || git rev-parse --short HEAD)
 
-# -- build --------------------------------------------------------------------
+# -- build ---------------------------------------------------------------------
 
 .PHONY: build build-static debug test install install-static
 
 build:
-	go build -ldflags "-w -s -X main.version=$(GIT_DESCRIBE)"
+	$(GO) build -ldflags "-w -s -X main.version=$(GIT_DESCRIBE)"
 
 build-static:
-	CGO_ENABLED=0 go build -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_DESCRIBE)"
+	CGO_ENABLED=0 $(GO) build -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_DESCRIBE)"
 
 debug:
-	go build -ldflags "-X main.version=$(GIT_DESCRIBE)"
+	$(GO) build -ldflags "-X main.version=$(GIT_DESCRIBE)"
 
 test:
-	go test -ldflags "-X main.version=$(GIT_DESCRIBE)" ./...
+	$(GO) test -ldflags "-X main.version=$(GIT_DESCRIBE)" ./...
 
 install:
-	go install -ldflags "-w -s -X main.version=$(GIT_DESCRIBE)"
+	$(GO) install -ldflags "-w -s -X main.version=$(GIT_DESCRIBE)"
 
 install-static:
-	CGO_ENABLED=0 go install -a -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_DESCRIBE)"
+	CGO_ENABLED=0 $(GO) install -a -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_DESCRIBE)"
 
-# -- go -----------------------------------------------------------------------
+# -- go ------------------------------------------------------------------------
 
 .PHONY: go-mod-download go-mod-tidy go-dep-upgrade-minor go-dep-upgrade-major verify-go-mod
 
 go-mod-download:
-	go mod download
+	$(GO) mod download
 
 go-mod-tidy:
-	go mod tidy
+	$(GO) mod tidy
 
 go-dep-upgrade-minor:
-	go get -u=patch ./...
+	$(GO) get -u=patch ./...
 
 go-dep-upgrade-major:
-	go get -u ./...
+	$(GO) get -u ./...
 
 verify-go-mod: go-mod-download
 	@git diff --quiet go.mod go.sum || { \
