@@ -265,7 +265,7 @@ func (s *StorageAccountMetrics) DeleteLabelValues(labels ...string) {
 
 // WalkBlob is called over each blobs listed by the function walking the
 // storage account container.
-func (s *StorageAccountMetrics) WalkBlob(subscription *subscription.Model, group *resources.Group, account *storage.Account, container *storage.ListContainerItem, blob *azblob.BlobItem) {
+func (s *StorageAccountMetrics) WalkBlob(subscription *subscription.Model, group *resources.Group, account *storage.Account, container *storage.ListContainerItem, blob *azblob.BlobItemInternal) {
 	s.ContainerBlobSizeHistogram.
 		WithLabelValues(*subscription.DisplayName, *group.Name, *account.Name, *container.Name).
 		Observe(float64(*blob.Properties.ContentLength))
