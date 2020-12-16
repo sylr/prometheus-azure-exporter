@@ -14,6 +14,8 @@ RUN git update-index --refresh; make install
 
 FROM debian:buster-slim
 
+LABEL org.opencontainers.image.source https://github.com/sylr/prometheus-azure-exporter
+
 WORKDIR /usr/local/bin
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y bash curl
 COPY --from=builder "/go/bin/prometheus-azure-exporter" .
