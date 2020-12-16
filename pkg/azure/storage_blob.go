@@ -24,7 +24,7 @@ type StorageAccountContainerWalker interface {
 	// Unlock releases the lock.
 	Unlock()
 	// WalkBlob is called for all blobs listed by the Walking function.
-	WalkBlob(*subscription.Model, *resources.Group, *storage.Account, *storage.ListContainerItem, *azblob.BlobItem)
+	WalkBlob(*subscription.Model, *resources.Group, *storage.Account, *storage.ListContainerItem, *azblob.BlobItemInternal)
 }
 
 // WalkStorageAccountContainer applies a function on all storage account container blobs.
