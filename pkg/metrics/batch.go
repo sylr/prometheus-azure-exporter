@@ -346,7 +346,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 				if job.DisplayName != nil {
 					displayName = *job.DisplayName
 				} else {
-					jobLogger.Warnf("Job has no display name, defaulting to job.ID")
+					jobLogger.Debugf("Job has no display name, defaulting to job.ID")
 				}
 
 				// <!-- metrics
