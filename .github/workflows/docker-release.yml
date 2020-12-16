@@ -5,24 +5,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Build debian based docker image
       run: |-
-        docker build . --file Dockerfile --tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-debian
-        docker tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-debian \
-                   docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)
+        docker build . --file Dockerfile --tag ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)-debian
+        docker tag ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)-debian \
+                   ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)
 
-    - name: Build scracth based docker image
-      run: docker build . --file Dockerfile-scratch --tag docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-scratch
+    - name: Build scratch based docker image
+      run: docker build . --file Dockerfile-scratch --tag ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)-scratch
 
     - name: Login to GitHub Docker Registry
-      run: docker login docker.pkg.github.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      run: docker login ghcr.io --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
       env:
         DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
 
     - name: Push the Docker image
       run: |-
-        docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-debian
-        docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)-scratch
-        docker push docker.pkg.github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter:$(git describe --tags)
+        docker push ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)-debian
+        docker push ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)-scratch
+        docker push ghcr.io/sylr/prometheus-azure-exporter:$(git describe --tags)
