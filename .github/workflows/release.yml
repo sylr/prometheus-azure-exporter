@@ -1,7 +1,7 @@
 name: Release
 on:
   release:
-    types: [created]
+    types: [published]
 jobs:
   release:
     name: Docker
@@ -17,6 +17,9 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
 
+    - name: Git diff
+      run: git diff --exit-code
+
     - name: Build debian based docker image
       run: make docker-build
 
@@ -26,6 +29,9 @@ jobs:
         driver-opts: |
           image=moby/buildkit:master
           network=host
+
+    - name: Git diff
+      run: git diff --exit-code
 
     - name: Build and push scratch based docker image
       run: make docker-buildx-build
