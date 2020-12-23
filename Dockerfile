@@ -14,9 +14,10 @@ RUN go mod download
 
 COPY . .
 
-RUN uname -a && go version
-RUN git update-index --refresh || true
-RUN make install
+# Run a git command otherwise git describe in the Makefile could report a dirty git dir
+RUN git diff --exit-code
+
+RUN make build
 
 # -----------------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ FROM debian:buster-slim
 
 WORKDIR /usr/local/bin
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y bash curl
-COPY --from=builder "/go/bin/prometheus-azure-exporter" .
+
+COPY --from=builder "/go/src/github.com/sylr/prometheus-azure-exporter/prometheus-azure-exporter" .
 
 ENTRYPOINT ["/usr/local/bin/prometheus-azure-exporter"]

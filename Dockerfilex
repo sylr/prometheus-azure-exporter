@@ -20,6 +20,7 @@ FROM --platform=$BUILDPLATFORM go AS builder
 
 ARG TARGETPLATFORM
 
+# Run a git command otherwise git describe in the Makefile could report a dirty git dir
 RUN git diff --exit-code
 
 RUN ["/bin/bash", "-c", "make build-static \
