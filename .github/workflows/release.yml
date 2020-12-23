@@ -1,0 +1,35 @@
+name: Release
+on: [release]
+jobs:
+  release:
+    name: Docker
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Login to GitHub Docker Registry
+      run: docker login ghcr.io --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      env:
+        DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
+
+    - name: Build debian based docker image
+      run: make docker-build
+
+    - name: Docker Buildx
+      uses: docker/setup-buildx-action@v1
+      with:
+        driver-opts: |
+          image=moby/buildkit:master
+          network=host
+
+    - name: Build and push scratch based docker image
+      run: make docker-buildx-build
+
+    - name: Push the Debian Docker image
+      run: make docker-push
+
+    - name: Push the Scratch multi-arch Docker image
+      run: make docker-buildx-push
