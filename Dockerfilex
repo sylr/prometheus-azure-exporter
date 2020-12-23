@@ -1,0 +1,46 @@
+# vi: ft=Dockerfile:
+
+ARG GO_VERSION=1.15
+
+FROM --platform=$BUILDPLATFORM golang:$GO_VERSION AS go
+
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y build-essential git
+
+WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+# -----------------------------------------------------------------------------
+
+FROM --platform=$BUILDPLATFORM go AS builder
+
+ARG TARGETPLATFORM
+
+RUN ["/bin/bash", "-c", "make build-static \
+GO_BUILD_TARGET=$TARGETPLATFORM/prometheus-azure-exporter \
+GOOS=$(cut -d '/' -f1 <<<\"$TARGETPLATFORM\") \
+GOARCH=$(cut -d '/' -f2 <<<\"$TARGETPLATFORM\") \
+GOARM=$(cut -d '/' -f3 <<<\"$TARGETPLATFORM\" | sed \"s/^v//\")"]
+
+# -----------------------------------------------------------------------------
+
+FROM scratch
+
+ARG TARGETPLATFORM
+
+WORKDIR /usr/local/bin
+
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+COPY --from=builder /etc/services /etc/services
+COPY --from=builder "/go/src/github.com/sylr/prometheus-azure-exporter/$TARGETPLATFORM/prometheus-azure-exporter" .
+
+USER nobody
+
+ENTRYPOINT ["/usr/local/bin/prometheus-azure-exporter"]

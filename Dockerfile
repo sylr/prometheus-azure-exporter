@@ -1,20 +1,26 @@
 # vi: ft=Dockerfile:
 
-FROM golang:1.15 as builder
+ARG GO_VERSION=1.15
+
+FROM golang:$GO_VERSION as builder
 
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y build-essential git
 
-ADD . $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 WORKDIR $GOPATH/src/github.com/sylr/prometheus-azure-exporter
 
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
 RUN uname -a && go version
-RUN git update-index --refresh; make install
+RUN git update-index --refresh || true
+RUN make install
 
 # -----------------------------------------------------------------------------
 
 FROM debian:buster-slim
-
-LABEL org.opencontainers.image.source https://github.com/sylr/prometheus-azure-exporter
 
 WORKDIR /usr/local/bin
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y bash curl
