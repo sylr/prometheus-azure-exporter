@@ -20,6 +20,8 @@ FROM --platform=$BUILDPLATFORM go AS builder
 
 ARG TARGETPLATFORM
 
+RUN git diff --exit-code
+
 RUN ["/bin/bash", "-c", "make build-static \
 GO_BUILD_TARGET=$TARGETPLATFORM/prometheus-azure-exporter \
 GOOS=$(cut -d '/' -f1 <<<\"$TARGETPLATFORM\") \
