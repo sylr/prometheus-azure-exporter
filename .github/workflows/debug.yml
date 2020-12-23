@@ -1,7 +1,8 @@
-name: Release
+name: Debug
 on:
-  release:
-    types: [published]
+  push:
+    branches: [master]
+  pull_request:
 jobs:
   release:
     name: Docker
@@ -29,12 +30,3 @@ jobs:
 
     - name: Git diff
       run: git status && git diff
-
-    - name: Build and push scratch based docker image
-      run: make docker-buildx-build
-
-    - name: Push the Debian Docker image
-      run: make docker-push
-
-    - name: Push the Scratch multi-arch Docker image
-      run: make docker-buildx-push

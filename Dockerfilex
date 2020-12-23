@@ -14,6 +14,9 @@ RUN go mod download
 
 COPY . .
 
+RUN git status; sleep 3
+RUN git diff; sleep 3
+
 # -----------------------------------------------------------------------------
 
 FROM --platform=$BUILDPLATFORM go AS builder
@@ -25,6 +28,9 @@ GO_BUILD_TARGET=$TARGETPLATFORM/prometheus-azure-exporter \
 GOOS=$(cut -d '/' -f1 <<<\"$TARGETPLATFORM\") \
 GOARCH=$(cut -d '/' -f2 <<<\"$TARGETPLATFORM\") \
 GOARM=$(cut -d '/' -f3 <<<\"$TARGETPLATFORM\" | sed \"s/^v//\")"]
+
+RUN git status; sleep 3
+RUN git diff; sleep 3
 
 # -----------------------------------------------------------------------------
 

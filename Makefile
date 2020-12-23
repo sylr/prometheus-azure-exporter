@@ -42,7 +42,7 @@ build:
 	 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) $(GO) build -ldflags "-w -s -X main.version=$(GIT_VERSION)" -o $(GO_BUILD_TARGET)
 
 build-static:
-	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 $(GO) build -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_VERSION)" -o $(GO_BUILD_TARGET)
+	GIT_VERSION=$(GIT_VERSION) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 $(GO) build -tags netgo -ldflags "-extldflags '-static' -w -s -X main.version=$(GIT_VERSION)" -o $(GO_BUILD_TARGET)
 
 debug:
 	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) $(GO) build -ldflags "-X main.version=$(GIT_VERSION)"
