@@ -1,9 +1,8 @@
 prometheus-azure-exporter
 =========================
 
-[![Build Status](https://travis-ci.com/sylr/prometheus-azure-exporter.svg?branch=master)](https://travis-ci.com/sylr/prometheus-azure-exporter)
-[![Docker Repository on Quay](https://quay.io/repository/sylr/prometheus-azure-exporter/status "Docker Repository on Quay")](https://quay.io/repository/sylr/prometheus-azure-exporter)
-
+[![Go](https://github.com/sylr/prometheus-azure-exporter/workflows/Go/badge.svg)](https://github.com/sylr/prometheus-azure-exporter/actions?query=workflow%3AGo+branch%3Amaster)
+[![Docker](https://github.com/sylr/prometheus-azure-exporter/workflows/Docker/badge.svg)](https://github.com/sylr/prometheus-azure-exporter/actions?query=workflow%3ADocker+branch%3Amaster)
 
 This is a daemon which calls Azure API to fetch resources metrics and expose them
 with HTTP using the prometheus format.
