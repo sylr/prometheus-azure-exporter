@@ -52,7 +52,7 @@ jobs:
           DOCKER_BUILD_VERSION=$(git describe --always --tags --dirty --broken)-go${{ matrix.go }}
 
     - name: Push the Scratch multi-arch Docker image to quay.io
-      if: ${{ github.ref == 'ref/heads/master' }}
+      if: ${{ github.ref == 'refs/heads/master' }}
       run: |
         make docker-buildx-push \
           DOCKER_BUILD_GO_VERSION=${{ matrix.go }} \
