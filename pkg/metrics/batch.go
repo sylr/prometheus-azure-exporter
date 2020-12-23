@@ -6,8 +6,10 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
+	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
+	qdsync "github.com/sylr/go-libqd/sync"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
 	"github.com/sylr/prometheus-azure-exporter/pkg/config"
 )
@@ -263,6 +265,8 @@ func UpdateBatchMetrics(ctx context.Context) error {
 	nextBatchJobsStates := newBatchJobsStates()
 	nextBatchJobsMetadata := newBatchJobsMetadata()
 
+	wg := qdsync.NewCancelableWaitGroup(ctx, 50)
+
 	for _, account := range *batchAccounts {
 		accountProperties, _ := azure.ParseResourceID(*account.ID)
 
@@ -278,122 +282,136 @@ func UpdateBatchMetrics(ctx context.Context) error {
 			continue
 		}
 
-		// <!-- metrics
+		// Metrics
 		nextBatchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
 		nextBatchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
-		// metrics -->
 
-		// <!-- POOLS ----------------------------------------------------------
+		// -- POOLS ------------------------------------------------------------
+
 		pools, err := azure.ListBatchAccountPools(ctx, azureClients, sub, &account)
 
 		if err != nil {
 			accountLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
 		} else {
 			for _, pool := range pools {
-				// Pool allocation state
-				for _, state := range batch.PossibleAllocationStateValues() {
-					nextBatchPoolsAllocationState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
-				}
+				wg.Add(1)
 
-				nextBatchPoolsAllocationState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(pool.AllocationState)).Set(1)
-
-				// Nodes state
-				for _, state := range batch.PossibleComputeNodeStateValues() {
-					nextBatchPoolsNodesState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
-				}
-
-				nextBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
-
-				// Metadata
-				if pool.Metadata != nil {
-					for _, metadata := range *pool.Metadata {
-						nextBatchPoolsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, *metadata.Name, *metadata.Value).Set(1)
+				go func(pool azurebatch.Pool) {
+					// Pool allocation state
+					for _, state := range batch.PossibleAllocationStateValues() {
+						nextBatchPoolsAllocationState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
 					}
-				}
 
-				nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, &account, &pool)
+					nextBatchPoolsAllocationState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(pool.AllocationState)).Set(1)
 
-				if err != nil {
-					accountLogger.WithFields(log.Fields{}).Error(err.Error())
-				} else {
-					for _, node := range *nodes {
-						nextBatchPoolsNodesState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(node.State)).Inc()
+					// Nodes state
+					for _, state := range batch.PossibleComputeNodeStateValues() {
+						nextBatchPoolsNodesState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
 					}
-				}
 
-				accountLogger.WithFields(log.Fields{
-					"metric":          "pool",
-					"pool":            *pool.Name,
-					"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
-				}).Debug("")
+					nextBatchPoolsDedicatedNodes.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name).Set(float64(*pool.PoolProperties.CurrentDedicatedNodes))
+
+					// Metadata
+					if pool.Metadata != nil {
+						for _, metadata := range *pool.Metadata {
+							nextBatchPoolsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, *metadata.Name, *metadata.Value).Set(1)
+						}
+					}
+
+					nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, &account, &pool)
+
+					if err != nil {
+						accountLogger.WithFields(log.Fields{}).Error(err.Error())
+					} else {
+						for _, node := range *nodes {
+							nextBatchPoolsNodesState.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(node.State)).Inc()
+						}
+					}
+
+					accountLogger.WithFields(log.Fields{
+						"metric":          "pool",
+						"pool":            *pool.Name,
+						"dedicated_nodes": *pool.PoolProperties.CurrentDedicatedNodes,
+					}).Debug("")
+
+					wg.Done()
+				}(pool)
 			}
 		}
-		// ----------------------------------------------------------- POOLS -->
 
-		// <!-- JOBS -----------------------------------------------------------
+		// -- JOBS -------------------------------------------------------------
+
 		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, sub, &account)
 
 		if err != nil {
 			accountLogger.Errorf("Unable to list account jobs: %s", err)
 		} else {
 			for _, job := range jobs {
-				jobLogger := accountLogger.WithFields(log.Fields{
-					"job_id": *job.ID,
-				})
+				wg.Add(1)
 
-				// job.DisplayName can be nil but we don't want that
-				displayName := *job.ID
-				if job.DisplayName != nil {
-					displayName = *job.DisplayName
-				} else {
-					jobLogger.Debugf("Job has no display name, defaulting to job.ID")
-				}
+				go func(job batch.CloudJob) {
+					jobLogger := accountLogger.WithFields(log.Fields{
+						"job_id": *job.ID,
+					})
 
-				// <!-- metrics
-				// We init JobStateActive state to 0 to be sure to have a value for each jobs so we can have alerts on the state value.
-				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(batch.JobStateActive)).Set(0)
-				nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(job.State)).Set(1)
-				// metrics -->
-
-				// job metadata
-				if job.Metadata != nil {
-					for _, metadata := range *job.Metadata {
-						// <!-- metrics
-						nextBatchJobsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *metadata.Name, *metadata.Value).Set(1)
-						// metrics -->
+					// job.DisplayName can be nil but we don't want that
+					displayName := *job.ID
+					if job.DisplayName != nil {
+						displayName = *job.DisplayName
+					} else {
+						jobLogger.Debugf("Job has no display name, defaulting to job.ID")
 					}
-				}
 
-				// job task count
-				taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
-
-				if err != nil {
-					jobLogger.Errorf("Unable to get jobs task count: %s", err)
-				} else {
 					// <!-- metrics
-					nextBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Active))
-					nextBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Running))
-					nextBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Completed))
-					nextBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Succeeded))
-					nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Failed))
-					nextBatchJobsInfo.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, *job.PoolInfo.PoolID).Set(1)
+					// We init JobStateActive state to 0 to be sure to have a value for each jobs so we can have alerts on the state value.
+					nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(batch.JobStateActive)).Set(0)
+					nextBatchJobsStates.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, string(job.State)).Set(1)
 					// metrics -->
 
-					jobLogger.WithFields(log.Fields{
-						"metric":    "job",
-						"job":       displayName,
-						"pool":      *job.PoolInfo.PoolID,
-						"active":    *taskCounts.Active,
-						"running":   *taskCounts.Running,
-						"completed": *taskCounts.Completed,
-						"succeeded": *taskCounts.Succeeded,
-						"failed":    *taskCounts.Failed,
-					}).Debug("")
-				}
+					// job metadata
+					if job.Metadata != nil {
+						for _, metadata := range *job.Metadata {
+							// <!-- metrics
+							nextBatchJobsMetadata.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, *metadata.Name, *metadata.Value).Set(1)
+							// metrics -->
+						}
+					}
+
+					// job task count
+					taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
+
+					if err != nil {
+						jobLogger.Errorf("Unable to get jobs task count: %s", err)
+					} else {
+						// <!-- metrics
+						nextBatchJobsTasksActive.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Active))
+						nextBatchJobsTasksRunning.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Running))
+						nextBatchJobsTasksCompleted.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Completed))
+						nextBatchJobsTasksSucceeded.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Succeeded))
+						nextBatchJobsTasksFailed.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID).Set(float64(*taskCounts.Failed))
+						nextBatchJobsInfo.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *job.ID, displayName, *job.PoolInfo.PoolID).Set(1)
+						// metrics -->
+
+						jobLogger.WithFields(log.Fields{
+							"metric":    "job",
+							"job":       displayName,
+							"pool":      *job.PoolInfo.PoolID,
+							"active":    *taskCounts.Active,
+							"running":   *taskCounts.Running,
+							"completed": *taskCounts.Completed,
+							"succeeded": *taskCounts.Succeeded,
+							"failed":    *taskCounts.Failed,
+						}).Debug("")
+					}
+
+					wg.Done()
+				}(job)
 			}
 		}
 		// ----------------------------------------------------------- JOBS --!>
 	}
+
+	wg.Wait()
 
 	// swapping current registered metrics with updated copies
 	mu.Lock()
