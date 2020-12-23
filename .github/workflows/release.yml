@@ -11,11 +11,17 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Login to GitHub Docker Registry
-      run: docker login ghcr.io --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+    - name: Login to GitHub Docker registry
+      run: docker login ghcr.io --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD"
       env:
         DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
+
+    - name: Login to Quay.io docker registry
+      run: docker login quay.io --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD"
+      env:
+        DOCKER_USERNAME: ${{ secrets.QUAY_DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.QUAY_DOCKER_PASSWORD }}
 
     - name: Build debian based docker image
       run: make docker-build
@@ -34,4 +40,6 @@ jobs:
       run: make docker-push
 
     - name: Push the Scratch multi-arch Docker image
-      run: make docker-buildx-push
+      run: |
+        make docker-buildx-push DOCKER_BUILD_IMAGE=ghcr.io/sylr/prometheus-azure-exporter
+        make docker-buildx-push DOCKER_BUILD_IMAGE=quay.io/sylr/prometheus-azure-exporter
