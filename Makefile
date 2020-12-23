@@ -14,6 +14,7 @@ DOCKER_BUILD_GO_VERSION ?= 1.15
 DOCKER_BUILD_LABELS      = --label org.opencontainers.image.title=prometheus-azure-exporter
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.description="Azure metrics exporter for prometheus"
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.url="https://github.com/sylr/prometheus-azure-exporter"
+DOCKER_BUILD_LABELS     += --label org.opencontainers.image.source="https://github.com/sylr/prometheus-azure-exporter"
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.revision=$(GIT_REVISION)
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.version=$(GIT_VERSION)
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.created=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
