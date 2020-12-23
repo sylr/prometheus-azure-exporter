@@ -26,20 +26,20 @@ jobs:
     - name: Build debian based docker image
       run: make docker-build
 
-    - name: Docker Buildx
+    - name: Setup docker buildx
       uses: docker/setup-buildx-action@v1
       with:
         driver-opts: |
           image=moby/buildkit:master
           network=host
 
-    - name: Build and push scratch based docker image
+    - name: Build scratch based multi-arch docker image
       run: make docker-buildx-build
 
-    - name: Push the Debian Docker image
+    - name: Push debian based docker image
       run: make docker-push
 
-    - name: Push the Scratch multi-arch Docker image
+    - name: Push scratch based multi-arch docker image to quay.io
       run: |
         make docker-buildx-push DOCKER_BUILD_IMAGE=ghcr.io/sylr/prometheus-azure-exporter
         make docker-buildx-push DOCKER_BUILD_IMAGE=quay.io/sylr/prometheus-azure-exporter

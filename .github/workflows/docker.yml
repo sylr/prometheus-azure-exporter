@@ -51,7 +51,7 @@ jobs:
           DOCKER_BUILD_IMAGE=ghcr.io/sylr/prometheus-azure-exporter-dev \
           DOCKER_BUILD_VERSION=$(git describe --always --tags --dirty --broken)-go${{ matrix.go }}
 
-    - name: Push the Scratch multi-arch Docker image to quay.io
+    - name: Push scratch based multi-arch docker image to quay.io
       if: ${{ github.ref == 'refs/heads/master' }}
       run: |
         make docker-buildx-push \
