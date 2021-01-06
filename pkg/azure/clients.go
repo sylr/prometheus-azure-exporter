@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/2019-08-01.10.0/batch"
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
@@ -67,6 +68,8 @@ func (azc *AzureClients) GetSubscriptionClient(subscriptionID string) (*subscrip
 	}
 
 	client := subscription.NewSubscriptionsClient()
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.subscriptionsClients[subscriptionID] = &client
 	azc.subscriptionsClients[subscriptionID].Authorizer = auth
 	azc.subscriptionsClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -90,6 +93,8 @@ func (azc *AzureClients) GetGroupClient(subscriptionID string) (*resources.Group
 	}
 
 	client := resources.NewGroupsClient(subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.groupClients[subscriptionID] = &client
 	azc.groupClients[subscriptionID].Authorizer = auth
 	azc.groupClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -113,6 +118,8 @@ func (azc *AzureClients) GetBatchAccountClient(subscriptionID string) (*azurebat
 	}
 
 	client := azurebatch.NewAccountClient(subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.batchAccountClients[subscriptionID] = &client
 	azc.batchAccountClients[subscriptionID].Authorizer = auth
 	azc.batchAccountClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -136,6 +143,8 @@ func (azc *AzureClients) GetBatchPoolClient(subscriptionID string) (*azurebatch.
 	}
 
 	client := azurebatch.NewPoolClient(subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.batchPoolClients[subscriptionID] = &client
 	azc.batchPoolClients[subscriptionID].Authorizer = auth
 	azc.batchPoolClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -159,6 +168,8 @@ func (azc *AzureClients) GetBatchJobClient(accountEndpoint string) (*batch.JobCl
 	}
 
 	client := batch.NewJobClient("https://" + accountEndpoint)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.batchJobClients[accountEndpoint] = &client
 	azc.batchJobClients[accountEndpoint].Authorizer = auth
 	// azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
@@ -182,6 +193,8 @@ func (azc *AzureClients) GetBatchJobClientWithResource(accountEndpoint string, r
 	}
 
 	client := batch.NewJobClient("https://" + accountEndpoint)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.batchJobClients[accountEndpoint+resource] = &client
 	azc.batchJobClients[accountEndpoint+resource].Authorizer = auth
 	// azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
@@ -205,6 +218,8 @@ func (azc *AzureClients) GetBatchComputeNodeClient(accountEndpoint string) (*bat
 	}
 
 	client := batch.NewComputeNodeClient("https://" + accountEndpoint)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.batchComputeNodeClient[accountEndpoint] = &client
 	azc.batchComputeNodeClient[accountEndpoint].Authorizer = auth
 	// azc.batchJobClients[accountEndpoint].ResponseInspector = respondInspectDebug()
@@ -228,6 +243,8 @@ func (azc *AzureClients) GetBatchComputeNodeClientWithResource(accountEndpoint s
 	}
 
 	client := batch.NewComputeNodeClient("https://" + accountEndpoint)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.batchComputeNodeClient[accountEndpoint+resource] = &client
 	azc.batchComputeNodeClient[accountEndpoint+resource].Authorizer = auth
 	// azc.batchJobClients[accountEndpoint+resource].ResponseInspector = respondInspectDebug()
@@ -251,6 +268,8 @@ func (azc *AzureClients) GetApplicationsClient(tenantID string) (*graph.Applicat
 	}
 
 	client := graph.NewApplicationsClient(tenantID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.applicationsClients[tenantID] = &client
 	azc.applicationsClients[tenantID].Authorizer = auth
 	// azc.applicationsClients[tenantID].ResponseInspector = respondInspectDebug()
@@ -274,6 +293,8 @@ func (azc *AzureClients) GetStorageAccountsClient(subscriptionID string) (*stora
 	}
 
 	client := storage.NewAccountsClient(subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.storageAccountsClients[subscriptionID] = &client
 	azc.storageAccountsClients[subscriptionID].Authorizer = auth
 	azc.storageAccountsClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -297,6 +318,8 @@ func (azc *AzureClients) GetStorageAccountsClientWithResource(subscriptionID str
 	}
 
 	client := storage.NewAccountsClientWithBaseURI(accountEndpoint, subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.storageAccountsClients[accountEndpoint+resource] = &client
 	azc.storageAccountsClients[accountEndpoint+resource].Authorizer = auth
 	azc.storageAccountsClients[accountEndpoint+resource].ResponseInspector = respondInspect(subscriptionID)
@@ -320,6 +343,8 @@ func (azc *AzureClients) GetStorageAccountUsagesClient(subscriptionID string) (*
 	}
 
 	client := storage.NewUsagesClient(subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.storageAccountUsagesClients[subscriptionID] = &client
 	azc.storageAccountUsagesClients[subscriptionID].Authorizer = auth
 	azc.storageAccountUsagesClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -343,6 +368,8 @@ func (azc *AzureClients) GetBlobContainersClient(subscriptionID string) (*storag
 	}
 
 	client := storage.NewBlobContainersClient(subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.blobContainersClients[subscriptionID] = &client
 	azc.blobContainersClients[subscriptionID].Authorizer = auth
 	azc.blobContainersClients[subscriptionID].ResponseInspector = respondInspect(subscriptionID)
@@ -366,6 +393,8 @@ func (azc *AzureClients) GetBlobContainersClientWithResource(subscriptionID stri
 	}
 
 	client := storage.NewBlobContainersClientWithBaseURI(accountEndpoint, subscriptionID)
+	client.RetryAttempts = 3
+	client.RetryDuration = 3 * time.Second
 	azc.blobContainersClients[accountEndpoint+resource] = &client
 	azc.blobContainersClients[accountEndpoint+resource].Authorizer = auth
 	azc.blobContainersClients[accountEndpoint+resource].ResponseInspector = respondInspect(subscriptionID)
