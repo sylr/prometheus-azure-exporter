@@ -11,8 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/go-libqd/sync"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
+	"sylr.dev/libqd/sync"
 )
 
 const (

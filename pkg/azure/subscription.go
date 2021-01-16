@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/go-libqd/cache"
+	"sylr.dev/libqd/cache"
 )
 
 // GetSubscription returns a subscription

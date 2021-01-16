@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sylr/go-libqd/cache"
+	"sylr.dev/libqd/cache"
 )
 
 const (

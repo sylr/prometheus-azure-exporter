@@ -17,17 +17,17 @@ require (
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/common v0.15.0 // indirect
-	github.com/prometheus/procfs v0.2.0 // indirect
+	github.com/prometheus/procfs v0.3.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	github.com/sylr/go-libqd/cache v0.1.1
-	github.com/sylr/go-libqd/sync v0.1.2
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924 // indirect
-	golang.org/x/sys v0.0.0-20201214210602-f9fddec55a1e // indirect
+	golang.org/x/sys v0.0.0-20210113181707-4bcb84eeeb78 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	sylr.dev/libqd/cache v0.0.0-20210116223609-0430c5632a32
+	sylr.dev/libqd/sync v0.0.0-20210116223455-05eb9c839987
 )
 
 replace github.com/prometheus/client_golang => github.com/sylr/prometheus-client-golang v1.6.1-0.20200515191553-9c85e674da94

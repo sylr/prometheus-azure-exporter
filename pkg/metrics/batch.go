@@ -9,7 +9,7 @@ import (
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	qdsync "github.com/sylr/go-libqd/sync"
+	qdsync "sylr.dev/libqd/sync"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
 	"github.com/sylr/prometheus-azure-exporter/pkg/config"
 )

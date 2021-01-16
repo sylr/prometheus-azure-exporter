@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/go-libqd/cache"
+	"sylr.dev/libqd/cache"
 )
 
 var (

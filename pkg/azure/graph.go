@@ -8,7 +8,7 @@ import (
 	graph "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/go-libqd/cache"
+	"sylr.dev/libqd/cache"
 )
 
 var (
