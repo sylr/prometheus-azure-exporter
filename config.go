@@ -8,9 +8,9 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/go-libqd/cache"
 	"github.com/sylr/prometheus-azure-exporter/pkg/config"
 	"github.com/sylr/prometheus-azure-exporter/pkg/metrics"
+	"sylr.dev/libqd/cache"
 )
 
 func setConfig() error {

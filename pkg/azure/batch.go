@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/sylr/go-libqd/cache"
+	"sylr.dev/libqd/cache"
 )
 
 const (
