@@ -3,7 +3,7 @@ module github.com/sylr/prometheus-azure-exporter
 go 1.14
 
 require (
-	github.com/Azure/azure-sdk-for-go v49.2.0+incompatible
+	github.com/Azure/azure-sdk-for-go v50.2.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.12.0
 	github.com/Azure/go-autorest/autorest v0.11.17
 	github.com/Azure/go-autorest/autorest/adal v0.9.10
@@ -12,16 +12,16 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/golang/protobuf v1.4.3 // indirect
-	github.com/google/uuid v1.1.2 // indirect
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/common v0.15.0 // indirect
 	github.com/prometheus/procfs v0.3.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	golang.org/x/net v0.0.0-20201216054612-986b41b23924 // indirect
-	golang.org/x/sys v0.0.0-20210113181707-4bcb84eeeb78 // indirect
-	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
+	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	sylr.dev/libqd/cache v0.0.0-20210116223609-0430c5632a32
