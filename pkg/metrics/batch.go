@@ -9,9 +9,9 @@ import (
 	azurebatch "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	qdsync "sylr.dev/libqd/sync"
 	"github.com/sylr/prometheus-azure-exporter/pkg/azure"
 	"github.com/sylr/prometheus-azure-exporter/pkg/config"
+	qdsync "sylr.dev/libqd/sync"
 )
 
 var (
@@ -267,36 +267,36 @@ func UpdateBatchMetrics(ctx context.Context) error {
 
 	wg := qdsync.NewCancelableWaitGroup(ctx, 50)
 
-	for _, account := range *batchAccounts {
-		accountProperties, _ := azure.ParseResourceID(*account.ID)
+	for i := range *batchAccounts {
+		accountProperties, _ := azure.ParseResourceID(*(*batchAccounts)[i].ID)
 
 		// logger
 		accountLogger := contextLogger.WithFields(log.Fields{
 			"rg":      accountProperties.ResourceGroup,
-			"account": *account.Name,
+			"account": *(*batchAccounts)[i].Name,
 		})
 
 		// Autodiscovery
-		if !config.MustDiscoverBasedOnTags(account.Tags) {
+		if !config.MustDiscoverBasedOnTags((*batchAccounts)[i].Tags) {
 			accountLogger.Debugf("Account skipped by autodiscovery")
 			continue
 		}
 
 		// Metrics
-		nextBatchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.PoolQuota))
-		nextBatchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name).Set(float64(*account.DedicatedCoreQuota))
+		nextBatchPoolQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *(*batchAccounts)[i].Name).Set(float64(*(*batchAccounts)[i].PoolQuota))
+		nextBatchDedicatedCoreQuota.WithLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *(*batchAccounts)[i].Name).Set(float64(*(*batchAccounts)[i].DedicatedCoreQuota))
 
 		// -- POOLS ------------------------------------------------------------
 
-		pools, err := azure.ListBatchAccountPools(ctx, azureClients, sub, &account)
+		pools, err := azure.ListBatchAccountPools(ctx, azureClients, sub, &(*batchAccounts)[i])
 
 		if err != nil {
-			accountLogger.Errorf("Unable to list account `%s` pools: %s", *account.Name, err)
+			accountLogger.Errorf("Unable to list account `%s` pools: %s", *(*batchAccounts)[i].Name, err)
 		} else {
 			for _, pool := range pools {
 				wg.Add(1)
 
-				go func(pool azurebatch.Pool) {
+				go func(account *azurebatch.Account, pool azurebatch.Pool) {
 					// Pool allocation state
 					for _, state := range batch.PossibleAllocationStateValues() {
 						nextBatchPoolsAllocationState.DeleteLabelValues(*sub.DisplayName, accountProperties.ResourceGroup, *account.Name, *pool.Name, string(state))
@@ -318,7 +318,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 						}
 					}
 
-					nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, &account, &pool)
+					nodes, err := azure.ListBatchComputeNodes(ctx, azureClients, sub, account, &pool)
 
 					if err != nil {
 						accountLogger.WithFields(log.Fields{}).Error(err.Error())
@@ -335,13 +335,13 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					}).Debug("")
 
 					wg.Done()
-				}(pool)
+				}(&(*batchAccounts)[i], pool)
 			}
 		}
 
 		// -- JOBS -------------------------------------------------------------
 
-		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, sub, &account)
+		jobs, err := azure.ListBatchAccountJobs(ctx, azureClients, sub, &(*batchAccounts)[i])
 
 		if err != nil {
 			accountLogger.Errorf("Unable to list account jobs: %s", err)
@@ -349,7 +349,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 			for _, job := range jobs {
 				wg.Add(1)
 
-				go func(job batch.CloudJob) {
+				go func(account *azurebatch.Account, job batch.CloudJob) {
 					jobLogger := accountLogger.WithFields(log.Fields{
 						"job_id": *job.ID,
 					})
@@ -378,7 +378,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					}
 
 					// job task count
-					taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, &account, &job)
+					taskCounts, err := azure.GetBatchJobTaskCounts(ctx, azureClients, sub, account, &job)
 
 					if err != nil {
 						jobLogger.Errorf("Unable to get jobs task count: %s", err)
@@ -405,7 +405,7 @@ func UpdateBatchMetrics(ctx context.Context) error {
 					}
 
 					wg.Done()
-				}(job)
+				}(&(*batchAccounts)[i], job)
 			}
 		}
 		// ----------------------------------------------------------- JOBS --!>
