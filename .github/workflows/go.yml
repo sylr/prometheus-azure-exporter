@@ -48,6 +48,7 @@ jobs:
       run: go version
 
     - name: Verify go mod
+      if: matrix.go != 'tip'
       run: make verify-go-mod
       working-directory: ${{ github.workspace }}/go/src/${{ github.repository }}
 
