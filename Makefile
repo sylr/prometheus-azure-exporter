@@ -73,7 +73,7 @@ go-dep-upgrade-minor:
 go-dep-upgrade-major:
 	$(GO) get -u ./...
 
-verify-go-mod: go-mod-download go-mod-tidy
+verify-go-mod: go-mod-tidy go-mod-download
 	@git diff --quiet go.mod go.sum || { \
 	    git diff go.mod go.sum; \
 	    git diff --exit-code go.mod go.sum; \
