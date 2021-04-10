@@ -10,7 +10,7 @@ GIT_VERSION  ?= $(shell git describe --always --tags --dirty --broken 2>/dev/nul
 
 DOCKER_BUILD_IMAGE      ?= ghcr.io/sylr/prometheus-azure-exporter
 DOCKER_BUILD_VERSION    ?= $(GIT_VERSION)
-DOCKER_BUILD_GO_VERSION ?= 1.15
+DOCKER_BUILD_GO_VERSION ?= 1.16
 DOCKER_BUILD_LABELS      = --label org.opencontainers.image.title=prometheus-azure-exporter
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.description="Azure metrics exporter for prometheus"
 DOCKER_BUILD_LABELS     += --label org.opencontainers.image.url="https://github.com/sylr/prometheus-azure-exporter"
