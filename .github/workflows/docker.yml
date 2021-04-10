@@ -19,10 +19,7 @@ jobs:
         fetch-depth: 0
 
     - name: Login to GitHub Docker registry
-      run: docker login ghcr.io --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD"
-      env:
-        DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
     - name: Login to Quay.io docker registry
       run: docker login quay.io --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD"
