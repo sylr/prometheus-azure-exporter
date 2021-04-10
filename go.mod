@@ -3,7 +3,7 @@ module github.com/sylr/prometheus-azure-exporter
 go 1.14
 
 require (
-	github.com/Azure/azure-sdk-for-go v53.0.0+incompatible
+	github.com/Azure/azure-sdk-for-go v53.1.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.13.0
 	github.com/Azure/go-autorest/autorest v0.11.18
 	github.com/Azure/go-autorest/autorest/adal v0.9.13
