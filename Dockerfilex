@@ -14,22 +14,23 @@ RUN go mod download
 
 COPY . .
 
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 FROM --platform=$BUILDPLATFORM go AS builder
 
 ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+SHELL ["bash", "-c"]
 
 # Run a git command otherwise git describe in the Makefile could report a dirty git dir
 RUN git diff --exit-code
 
-RUN ["/bin/bash", "-c", "make build-static \
-GO_BUILD_TARGET=$TARGETPLATFORM/prometheus-azure-exporter \
-GOOS=$(cut -d '/' -f1 <<<\"$TARGETPLATFORM\") \
-GOARCH=$(cut -d '/' -f2 <<<\"$TARGETPLATFORM\") \
-GOARM=$(cut -d '/' -f3 <<<\"$TARGETPLATFORM\" | sed \"s/^v//\")"]
+RUN make build-static GO_BUILD_TARGET=${TARGETPLATFORM}/prometheus-azure-exporter GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT/v/}
 
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 FROM scratch
 
@@ -42,7 +43,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 COPY --from=builder /etc/services /etc/services
-COPY --from=builder "/go/src/github.com/sylr/prometheus-azure-exporter/$TARGETPLATFORM/prometheus-azure-exporter" .
+COPY --from=builder "/go/src/github.com/sylr/prometheus-azure-exporter/${TARGETPLATFORM}/prometheus-azure-exporter" .
 
 USER nobody
 
