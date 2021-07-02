@@ -7,7 +7,7 @@ require (
 	github.com/Azure/azure-storage-blob-go v0.13.0
 	github.com/Azure/go-autorest/autorest v0.11.19
 	github.com/Azure/go-autorest/autorest/adal v0.9.14
-	github.com/Azure/go-autorest/autorest/azure/auth v0.5.7
+	github.com/Azure/go-autorest/autorest/azure/auth v0.5.8
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
@@ -19,7 +19,6 @@ require (
 	github.com/prometheus/common v0.20.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
-	golang.org/x/crypto v0.0.0-20210415154028-4f45737414dc // indirect
 	golang.org/x/net v0.0.0-20210415231046-e915ea6b2b7d // indirect
 	golang.org/x/sys v0.0.0-20210415045647-66c3f260301c // indirect
 	gopkg.in/yaml.v2 v2.4.0
