@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/Azure/azure-sdk-for-go v53.4.0+incompatible
-	github.com/Azure/azure-storage-blob-go v0.13.0
+	github.com/Azure/azure-storage-blob-go v0.14.0
 	github.com/Azure/go-autorest/autorest v0.11.19
 	github.com/Azure/go-autorest/autorest/adal v0.9.14
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.8
@@ -13,7 +13,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/uuid v1.2.0 // indirect
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/common v0.20.0 // indirect
