@@ -1,6 +1,6 @@
 # vi: ft=Dockerfile:
 
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.17
 
 FROM golang:$GO_VERSION as builder
 
