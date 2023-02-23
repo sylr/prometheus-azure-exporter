@@ -42,7 +42,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	sylr.dev/cache/v2 v2.3.0 // indirect
 )
