@@ -17,7 +17,7 @@ require (
 	github.com/prometheus/client_golang v1.14.1
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	golang.org/x/net v0.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	sylr.dev/libqd/cache v0.0.0-20210116223609-0430c5632a32
